@@ -31,7 +31,7 @@
                 <button type="button" id="tabLoginBtn" class="auth-tab-btn" onclick="switchAuthMode('login')">Login</button>
             </div>
 
-            <!-- 1. Registration Form (Normal Users Only) -->
+            <!-- 1. Registration Form -->
             <form id="registerForm" class="auth-form-body">
                 <input type="text" id="regName" placeholder="Full Name" required>
                 <input type="text" id="regUsername" placeholder="Username" required>
@@ -42,19 +42,19 @@
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-user-plus"></i> Complete Registration</button>
             </form>
 
-            <!-- 2. Login Form -->
+            <!-- 2. Clean Separate Login Form (Only Email & Password) -->
             <form id="loginForm" class="auth-form-body hidden">
                 <input type="email" id="loginEmail" placeholder="Registered Email Address" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login Now</button>
                 
-                <!-- Forgot Password in small letters placed below Login -->
+                <!-- Forgot Password Link -->
                 <div class="forgot-link-wrapper">
                     <a href="#" class="forgot-pwd-link" onclick="toggleForgotView(event)">forgot password?</a>
                 </div>
             </form>
 
-            <!-- 3. Forgot Password Form (Sub-view of Login) -->
+            <!-- 3. Forgot Password Form -->
             <form id="forgotForm" class="auth-form-body hidden">
                 <p style="font-size:0.8rem; color:#64748b; text-align:center;">Enter your registered email to receive password reset instructions.</p>
                 <input type="email" id="forgotEmail" placeholder="Registered Email Address" required>
@@ -64,7 +64,7 @@
                 </div>
             </form>
 
-            <!-- 4. Secret Hidden Admin Login Form -->
+            <!-- 4. Secret Hidden Admin Form -->
             <form id="adminLoginForm" class="auth-form-body hidden">
                 <h4 style="text-align:center; color:#0f172a; margin-bottom:5px;">Admin Portal</h4>
                 <input type="email" id="adminEmail" placeholder="Admin Email" required>
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- Main Website Portal -->
+    <!-- Main Portal Content -->
     <div id="portalMainContent" class="hidden">
         <header>
             <div class="logo">
@@ -111,7 +111,7 @@
             <div class="main-wrapper">
                 <main class="container">
                     
-                    <!-- View 1: Academic Year Selection -->
+                    <!-- Course Selection -->
                     <div id="courseSelectionView" class="view-section">
                         <h2 class="section-title">Select Academic Year</h2>
                         <div class="course-grid">
@@ -138,28 +138,28 @@
                         </div>
                     </div>
 
-                    <!-- View 2: Semester Selection -->
+                    <!-- Semester Selection -->
                     <div id="semesterSelectionView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Years</button>
                         <h2 class="section-title" id="selectedYearTitle">Select Semester</h2>
                         <div id="semesterGrid" class="course-grid"></div>
                     </div>
 
-                    <!-- View 3: Subject Selection -->
+                    <!-- Subject Selection -->
                     <div id="subjectSelectionView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="backToSemesters()"><i class="fa-solid fa-arrow-left"></i> Back to Semesters</button>
                         <h2 class="section-title" id="selectedSemTitle">Select Subject</h2>
                         <div id="subjectGrid" class="subject-grid"></div>
                     </div>
 
-                    <!-- View 4: Subject PDFs -->
+                    <!-- Subject Materials Detail -->
                     <div id="materialsDetailView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="backToSubjects()"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</button>
                         <h2 class="section-title" id="selectedSubjectTitle">Study Materials</h2>
                         <div id="materialsGrid"></div>
                     </div>
 
-                    <!-- View 5: Share PDF Panel -->
+                    <!-- User Upload PDF Panel -->
                     <div id="userUploadView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
                         <h2 class="section-title"><i class="fa-solid fa-share-nodes"></i> Share Study Material</h2>
@@ -191,14 +191,14 @@
                         </div>
                     </div>
 
-                    <!-- View 6: Saved PDFs -->
+                    <!-- Saved PDFs -->
                     <div id="userDownloadsView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
                         <h2 class="section-title"><i class="fa-solid fa-download"></i> My Saved PDFs</h2>
                         <div id="userDownloadsGrid"></div>
                     </div>
 
-                    <!-- View 7: Admin Panel -->
+                    <!-- Admin Panel -->
                     <div id="adminPanelView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
                         <h2 class="section-title"><i class="fa-solid fa-user-shield"></i> Admin Panel</h2>
@@ -238,7 +238,7 @@
 
                 </main>
 
-                <!-- Activity Log Sidebar -->
+                <!-- Sidebar Activity Log -->
                 <aside class="sidebar">
                     <div class="history-box">
                         <h3><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</h3>
@@ -257,7 +257,7 @@
         </footer>
     </div>
 
-    <!-- Script File -->
+    <!-- Fixed Script File -->
     <script src="script.js"></script>
 </body>
 </html>
