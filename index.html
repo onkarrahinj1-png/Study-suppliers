@@ -17,7 +17,7 @@
     <div id="landingAuthOverlay" class="landing-auth-overlay">
         <div class="landing-auth-card">
             
-            <!-- Hidden Secret Admin Trigger Link -->
+            <!-- Hidden Secret Admin Link -->
             <a href="#" class="secret-admin-link" onclick="openAdminModal(event)">admin</a>
 
             <div class="auth-header">
@@ -42,13 +42,12 @@
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-user-plus"></i> Complete Registration</button>
             </form>
 
-            <!-- 2. Login Form (Now accepts Username OR Email) -->
+            <!-- 2. Dual Login Form (Username OR Email) -->
             <form id="loginForm" class="auth-form-body hidden">
                 <input type="text" id="loginIdentifier" placeholder="Username or Email Address" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login Now</button>
                 
-                <!-- Forgot Password Link -->
                 <div class="forgot-link-wrapper">
                     <a href="#" class="forgot-pwd-link" onclick="toggleForgotView(event)">forgot password?</a>
                 </div>
@@ -64,13 +63,13 @@
                 </div>
             </form>
 
-            <!-- 4. Secret Hidden Admin Form -->
+            <!-- 4. Key-based Secret Admin Form -->
             <form id="adminLoginForm" class="auth-form-body hidden">
-                <h4 style="text-align:center; color:#0f172a; margin-bottom:5px;">Admin Portal</h4>
+                <h4 style="text-align:center; color:#0f172a; margin-bottom:5px;"><i class="fa-solid fa-user-shield"></i> Secret Admin Portal</h4>
                 <input type="email" id="adminEmail" placeholder="Admin Email" required>
                 <input type="password" id="adminPassword" placeholder="Admin Password" required>
-                <input type="password" id="adminKeyInput" placeholder="Secret Key" required>
-                <button type="submit" class="submit-btn" style="background:#0f172a;"><i class="fa-solid fa-user-shield"></i> Admin Login</button>
+                <input type="password" id="adminKeyInput" placeholder="Secret Key (admin2020)" required>
+                <button type="submit" class="submit-btn" style="background:#0f172a;"><i class="fa-solid fa-lock"></i> Authorize Admin Access</button>
                 <div class="forgot-link-wrapper">
                     <a href="#" class="forgot-pwd-link" onclick="closeAdminModal(event)">back to user login</a>
                 </div>
@@ -92,7 +91,7 @@
                     <li><button type="button" onclick="openUserUploadPanel()"><i class="fa-solid fa-upload"></i> Share PDF</button></li>
                     <li><button type="button" onclick="openUserDownloads()" class="nav-download-btn"><i class="fa-solid fa-download"></i> My Saved PDFs <span id="dlNavBadge" class="dl-badge">0</span></button></li>
                     <li id="adminNavBtn" class="hidden">
-                        <button type="button" onclick="openAdminPanel()"><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
+                        <button type="button" onclick="openAdminPanel()" style="background:#0f172a; border-color:#38bdf8; color:#38bdf8;"><i class="fa-solid fa-user-shield"></i> Admin Dashboard</button>
                     </li>
                     <li>
                         <button type="button" onclick="logoutUser()" style="background:#e11d48; border-color:#e11d48;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -198,12 +197,14 @@
                         <div id="userDownloadsGrid"></div>
                     </div>
 
-                    <!-- Admin Panel -->
+                    <!-- Enhanced Admin Management Panel -->
                     <div id="adminPanelView" class="view-section hidden">
                         <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
-                        <h2 class="section-title"><i class="fa-solid fa-user-shield"></i> Admin Panel</h2>
+                        <h2 class="section-title"><i class="fa-solid fa-user-shield"></i> Admin Control Center</h2>
+                        
+                        <!-- 1. Add Material Box -->
                         <div class="admin-box">
-                            <h3>Add Study Material</h3>
+                            <h3><i class="fa-solid fa-file-circle-plus"></i> Add New Study Material</h3>
                             <form id="addMaterialForm" class="admin-form" style="margin-top: 10px;">
                                 <select id="adminMatYear" required onchange="populateFormSemesters('adminMatYear', 'adminMatSem', 'adminMatSubject')">
                                     <option value="">1. Select Year</option>
@@ -230,8 +231,28 @@
                             </form>
                         </div>
 
+                        <!-- 2. Registered Users Management Table -->
                         <div class="admin-box" style="margin-top: 20px;">
-                            <h3>Uploaded PDFs List</h3>
+                            <h3><i class="fa-solid fa-users"></i> Registered Students List</h3>
+                            <div style="overflow-x:auto; margin-top:10px;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Username</th>
+                                            <th>Student ID</th>
+                                            <th>Email</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminUsersTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 3. Uploaded PDFs Management -->
+                        <div class="admin-box" style="margin-top: 20px;">
+                            <h3><i class="fa-solid fa-folder-open"></i> Manage Uploaded PDF Files</h3>
                             <ul id="adminMaterialList" class="admin-list" style="margin-top: 10px;"></ul>
                         </div>
                     </div>
