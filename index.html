@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Suppliers - Academic Portal</title>
+    <title>Study Suppliers - BCom CA Portal</title>
     <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Separate CSS File -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- CSS File -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Auth Overlay (Registration, Login & Hidden Secret Admin) -->
-    <div id="authOverlay" class="auth-overlay">
-        <div class="auth-card">
+    <!-- Authentication Overlay -->
+    <div id="landingAuthOverlay" class="landing-auth-overlay">
+        <div class="landing-auth-card">
             
-            <!-- Chota Secret Admin Link Kono me -->
+            <!-- Hidden Secret Admin Trigger Link (Small letters in top corner) -->
             <a href="#" class="secret-admin-link" onclick="openAdminModal(event)">admin</a>
 
             <div class="auth-header">
-                <div class="brand-badge">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
+                <i class="fa-solid fa-book-open-reader auth-logo-icon"></i>
                 <h2>Study <span>Suppliers</span></h2>
-                <p>Access notes, question papers & syllabus</p>
+                <p>Welcome! Please Register or Login to access portal.</p>
             </div>
 
             <div class="auth-tabs" id="mainAuthTabs">
@@ -33,123 +31,233 @@
                 <button type="button" id="tabLoginBtn" class="auth-tab-btn" onclick="switchAuthMode('login')">Login</button>
             </div>
 
-            <!-- Registration Form -->
-            <form id="registerForm" class="auth-form">
-                <div class="input-group">
-                    <i class="fa-regular fa-user"></i>
-                    <input type="text" id="regName" placeholder="Full Name" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-at"></i>
-                    <input type="text" id="regUsername" placeholder="Username (e.g. rahul123)" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-id-card"></i>
-                    <input type="text" id="regStudentId" placeholder="Student Roll / ID" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-regular fa-envelope"></i>
-                    <input type="email" id="regEmail" placeholder="Email Address" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="regPassword" placeholder="Create Password" required>
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+            <!-- 1. Registration Form -->
+            <form id="registerForm" class="auth-form-body">
+                <input type="text" id="regName" placeholder="Full Name" required>
+                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="text" id="regUserId" placeholder="User ID / Student ID" required>
+                <input type="email" id="regEmail" placeholder="Email Address" required>
+                <input type="password" id="regPassword" placeholder="Create Password" required>
+                
+                <button type="submit" class="submit-btn"><i class="fa-solid fa-user-plus"></i> Complete Registration</button>
             </form>
 
-            <!-- Login Form (Username OR Email Supported) -->
-            <form id="loginForm" class="auth-form hidden">
-                <div class="input-group">
-                    <i class="fa-regular fa-user"></i>
-                    <input type="text" id="loginIdentifier" placeholder="Username or Email" required>
+            <!-- 2. Clean Separate Login Form (Only Email & Password) -->
+            <form id="loginForm" class="auth-form-body hidden">
+                <input type="email" id="loginEmail" placeholder="Registered Email Address" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login Now</button>
+                
+                <!-- Forgot Password Link -->
+                <div class="forgot-link-wrapper">
+                    <a href="#" class="forgot-pwd-link" onclick="toggleForgotView(event)">forgot password?</a>
                 </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
             </form>
 
-            <!-- Secret Admin Login Form (Requires Key: admin2020) -->
-            <form id="adminLoginForm" class="auth-form hidden">
-                <div class="admin-title-badge">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span>Admin Access Portal</span>
+            <!-- 3. Forgot Password Form -->
+            <form id="forgotForm" class="auth-form-body hidden">
+                <p style="font-size:0.8rem; color:#64748b; text-align:center;">Enter your registered email to receive password reset instructions.</p>
+                <input type="email" id="forgotEmail" placeholder="Registered Email Address" required>
+                <button type="submit" class="submit-btn"><i class="fa-solid fa-paper-plane"></i> Send Password Reset Link</button>
+                <div class="forgot-link-wrapper">
+                    <a href="#" class="forgot-pwd-link" onclick="toggleForgotView(event)">back to login</a>
                 </div>
-                <div class="input-group">
-                    <i class="fa-regular fa-envelope"></i>
-                    <input type="email" id="adminEmail" placeholder="Registered Admin Email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="adminPassword" placeholder="Password" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-key"></i>
-                    <input type="password" id="adminKeyInput" placeholder="Secret Key (admin2020)" required>
-                </div>
-                <button type="submit" class="btn btn-dark"><i class="fa-solid fa-user-shield"></i> Unlock Admin Panel</button>
-                <div class="back-link-wrapper">
-                    <a href="#" onclick="closeAdminModal(event)">← Back to Student Login</a>
+            </form>
+
+            <!-- 4. Secret Hidden Admin Form -->
+            <form id="adminLoginForm" class="auth-form-body hidden">
+                <h4 style="text-align:center; color:#0f172a; margin-bottom:5px;">Admin Portal</h4>
+                <input type="email" id="adminEmail" placeholder="Admin Email" required>
+                <input type="password" id="adminPassword" placeholder="Admin Password" required>
+                <input type="password" id="adminKeyInput" placeholder="Secret Key" required>
+                <button type="submit" class="submit-btn" style="background:#0f172a;"><i class="fa-solid fa-user-shield"></i> Admin Login</button>
+                <div class="forgot-link-wrapper">
+                    <a href="#" class="forgot-pwd-link" onclick="closeAdminModal(event)">back to user login</a>
                 </div>
             </form>
 
         </div>
     </div>
 
-    <!-- Main Application View -->
+    <!-- Main Portal Content -->
     <div id="portalMainContent" class="hidden">
-        <header class="app-header">
+        <header>
             <div class="logo">
-                <i class="fa-solid fa-graduation-cap"></i>
+                <i class="fa-solid fa-book-open-reader"></i>
                 <h1>Study <span>Suppliers</span></h1>
             </div>
             <nav>
-                <ul>
-                    <li><button type="button" class="nav-btn" onclick="showHome()"><i class="fa-solid fa-house"></i> Home</button></li>
+                <ul id="navLinks">
+                    <li><button type="button" onclick="showHome()"><i class="fa-solid fa-house"></i> Home</button></li>
+                    <li><button type="button" onclick="openUserUploadPanel()"><i class="fa-solid fa-upload"></i> Share PDF</button></li>
+                    <li><button type="button" onclick="openUserDownloads()" class="nav-download-btn"><i class="fa-solid fa-download"></i> My Saved PDFs <span id="dlNavBadge" class="dl-badge">0</span></button></li>
                     <li id="adminNavBtn" class="hidden">
-                        <button type="button" class="nav-btn btn-admin" onclick="alert('Admin Panel Access Granted!')"><i class="fa-solid fa-user-shield"></i> Admin Dashboard</button>
+                        <button type="button" onclick="openAdminPanel()"><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
                     </li>
                     <li>
-                        <button type="button" class="nav-btn btn-logout" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        <button type="button" onclick="logoutUser()" style="background:#e11d48; border-color:#e11d48;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                     </li>
                 </ul>
             </nav>
         </header>
 
-        <main class="container">
-            <section class="hero-card">
-                <div class="hero-text">
-                    <h2>Academic Materials & Study Resources</h2>
-                    <div id="userGreeting" class="user-greeting">Logged in as: Guest</div>
-                </div>
+        <div id="mainApp">
+            <section class="hero">
+                <h2>Welcome to Study Suppliers Portal</h2>
+                <p>Access BCom CA Academic Notes, Practical Files, & Question Papers easily.</p>
+                <div id="userGreeting" class="user-status-bar">User Mode</div>
             </section>
 
-            <section id="courseSelectionView" class="section-block">
-                <h3 class="section-heading">Select Academic Year</h3>
-                <div class="card-grid">
-                    <div class="year-card" onclick="alert('Opening FY BCom CA Notes...')">
-                        <div class="card-icon"><i class="fa-solid fa-book-bookmark"></i></div>
-                        <h3>FY BCom CA</h3>
-                        <p>First Year Materials</p>
+            <div class="main-wrapper">
+                <main class="container">
+                    
+                    <!-- Course Selection -->
+                    <div id="courseSelectionView" class="view-section">
+                        <h2 class="section-title">Select Academic Year</h2>
+                        <div class="course-grid">
+                            <div class="course-card" onclick="openYear('fy')">
+                                <i class="fa-solid fa-graduation-cap course-icon"></i>
+                                <h3>FY BCom CA</h3>
+                                <p>First Year (Semester 1 & 2)</p>
+                                <button type="button" class="explore-btn">Open Year <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+
+                            <div class="course-card" onclick="openYear('sy')">
+                                <i class="fa-solid fa-user-graduate course-icon"></i>
+                                <h3>SY BCom CA</h3>
+                                <p>Second Year (Semester 3 & 4)</p>
+                                <button type="button" class="explore-btn">Open Year <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+
+                            <div class="course-card" onclick="openYear('ty')">
+                                <i class="fa-solid fa-award course-icon"></i>
+                                <h3>TY BCom CA</h3>
+                                <p>Third Year (Semester 5 & 6)</p>
+                                <button type="button" class="explore-btn">Open Year <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="year-card" onclick="alert('Opening SY BCom CA Notes...')">
-                        <div class="card-icon"><i class="fa-solid fa-book-open"></i></div>
-                        <h3>SY BCom CA</h3>
-                        <p>Second Year Materials</p>
+
+                    <!-- Semester Selection -->
+                    <div id="semesterSelectionView" class="view-section hidden">
+                        <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Years</button>
+                        <h2 class="section-title" id="selectedYearTitle">Select Semester</h2>
+                        <div id="semesterGrid" class="course-grid"></div>
                     </div>
-                    <div class="year-card" onclick="alert('Opening TY BCom CA Notes...')">
-                        <div class="card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                        <h3>TY BCom CA</h3>
-                        <p>Third Year Materials</p>
+
+                    <!-- Subject Selection -->
+                    <div id="subjectSelectionView" class="view-section hidden">
+                        <button type="button" class="back-btn" onclick="backToSemesters()"><i class="fa-solid fa-arrow-left"></i> Back to Semesters</button>
+                        <h2 class="section-title" id="selectedSemTitle">Select Subject</h2>
+                        <div id="subjectGrid" class="subject-grid"></div>
                     </div>
-                </div>
-            </section>
-        </main>
+
+                    <!-- Subject Materials Detail -->
+                    <div id="materialsDetailView" class="view-section hidden">
+                        <button type="button" class="back-btn" onclick="backToSubjects()"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</button>
+                        <h2 class="section-title" id="selectedSubjectTitle">Study Materials</h2>
+                        <div id="materialsGrid"></div>
+                    </div>
+
+                    <!-- User Upload PDF Panel -->
+                    <div id="userUploadView" class="view-section hidden">
+                        <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
+                        <h2 class="section-title"><i class="fa-solid fa-share-nodes"></i> Share Study Material</h2>
+                        <div class="user-upload-box">
+                            <form id="userShareForm" class="admin-form">
+                                <select id="userMatYear" required onchange="populateFormSemesters('userMatYear', 'userMatSem', 'userMatSubject')">
+                                    <option value="">1. Select Academic Year</option>
+                                    <option value="fy">FY BCom CA</option>
+                                    <option value="sy">SY BCom CA</option>
+                                    <option value="ty">TY BCom CA</option>
+                                </select>
+
+                                <select id="userMatSem" required onchange="populateFormSubjects('userMatYear', 'userMatSem', 'userMatSubject')">
+                                    <option value="">2. Select Semester</option>
+                                </select>
+
+                                <select id="userMatSubject" required onchange="populateCategories('userMatYear', 'userMatSem', 'userMatSubject', 'userMatCategory')">
+                                    <option value="">3. Select Subject</option>
+                                </select>
+
+                                <select id="userMatCategory" required>
+                                    <option value="">4. Select Category</option>
+                                </select>
+
+                                <input type="text" id="userMatTitle" placeholder="Document Title (e.g. Unit 1 Notes)" required>
+                                <input type="url" id="userMatUrl" placeholder="Google Drive / Direct PDF URL" required>
+                                <button type="submit" class="submit-btn share-btn"><i class="fa-solid fa-paper-plane"></i> Share PDF</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Saved PDFs -->
+                    <div id="userDownloadsView" class="view-section hidden">
+                        <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
+                        <h2 class="section-title"><i class="fa-solid fa-download"></i> My Saved PDFs</h2>
+                        <div id="userDownloadsGrid"></div>
+                    </div>
+
+                    <!-- Admin Panel -->
+                    <div id="adminPanelView" class="view-section hidden">
+                        <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
+                        <h2 class="section-title"><i class="fa-solid fa-user-shield"></i> Admin Panel</h2>
+                        <div class="admin-box">
+                            <h3>Add Study Material</h3>
+                            <form id="addMaterialForm" class="admin-form" style="margin-top: 10px;">
+                                <select id="adminMatYear" required onchange="populateFormSemesters('adminMatYear', 'adminMatSem', 'adminMatSubject')">
+                                    <option value="">1. Select Year</option>
+                                    <option value="fy">FY BCom CA</option>
+                                    <option value="sy">SY BCom CA</option>
+                                    <option value="ty">TY BCom CA</option>
+                                </select>
+
+                                <select id="adminMatSem" required onchange="populateFormSubjects('adminMatYear', 'adminMatSem', 'adminMatSubject')">
+                                    <option value="">2. Select Semester</option>
+                                </select>
+
+                                <select id="adminMatSubject" required onchange="populateCategories('adminMatYear', 'adminMatSem', 'adminMatSubject', 'adminMatCategory')">
+                                    <option value="">3. Select Subject</option>
+                                </select>
+
+                                <select id="adminMatCategory" required>
+                                    <option value="">4. Select Category</option>
+                                </select>
+
+                                <input type="text" id="adminMatTitle" placeholder="Document Title" required>
+                                <input type="url" id="adminMatUrl" placeholder="PDF Google Drive Link" required>
+                                <button type="submit" class="submit-btn admin-btn">Upload PDF</button>
+                            </form>
+                        </div>
+
+                        <div class="admin-box" style="margin-top: 20px;">
+                            <h3>Uploaded PDFs List</h3>
+                            <ul id="adminMaterialList" class="admin-list" style="margin-top: 10px;"></ul>
+                        </div>
+                    </div>
+
+                </main>
+
+                <!-- Sidebar Activity Log -->
+                <aside class="sidebar">
+                    <div class="history-box">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</h3>
+                        <p class="count-text">Activities: <span id="downloadCount">0</span></p>
+                        <ul id="historyList" class="history-list">
+                            <li class="empty-msg">No activity recorded.</li>
+                        </ul>
+                        <button type="button" id="clearHistoryBtn" class="clear-btn">Clear Log</button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 Study Suppliers | BCom CA Academic Portal</p>
+        </footer>
     </div>
 
-    <!-- Separate JS File -->
+    <!-- Fixed Script File -->
     <script src="script.js"></script>
 </body>
 </html>
