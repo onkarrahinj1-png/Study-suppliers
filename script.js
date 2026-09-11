@@ -126,6 +126,7 @@ function checkInitialAuthFlow() {
         landingOverlay.classList.add("hidden");
         portalContent.classList.remove("hidden");
         updateUserStatusUI();
+        showHome();
     } else {
         portalContent.classList.add("hidden");
         landingOverlay.classList.remove("hidden");
@@ -139,7 +140,6 @@ function checkInitialAuthFlow() {
     }
 }
 
-// Fixed Separate Auth Mode Logic
 function switchAuthMode(mode) {
     document.getElementById("mainAuthTabs").classList.remove("hidden");
     
@@ -150,7 +150,6 @@ function switchAuthMode(mode) {
     const forgotForm = document.getElementById("forgotForm");
     const adminForm = document.getElementById("adminLoginForm");
 
-    // Hide sub forms
     forgotForm.classList.add("hidden");
     adminForm.classList.add("hidden");
 
@@ -210,7 +209,6 @@ function updateUserStatusUI() {
 }
 
 function setupAuthAndFormEvents() {
-    // Register Form Handler
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value.trim();
@@ -231,10 +229,10 @@ function setupAuthAndFormEvents() {
         setLocalData("app_users", users);
 
         document.getElementById("registerForm").reset();
+        alert("Registration successful! Please login.");
         switchAuthMode('login');
     };
 
-    // Login Form Handler (No popup, direct login)
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("loginEmail").value.trim();
@@ -252,7 +250,6 @@ function setupAuthAndFormEvents() {
         }
     };
 
-    // Secret Admin Login Handler
     document.getElementById("adminLoginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("adminEmail").value.trim();
@@ -269,7 +266,6 @@ function setupAuthAndFormEvents() {
         checkInitialAuthFlow();
     };
 
-    // Forgot Password Handler
     document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
         const userEmail = document.getElementById("forgotEmail").value.trim();
@@ -301,7 +297,6 @@ function setupAuthAndFormEvents() {
             });
     };
 
-    // Share & Admin Forms
     document.getElementById("userShareForm").onsubmit = function (e) {
         e.preventDefault();
         handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
@@ -325,6 +320,11 @@ function logoutUser() {
     localStorage.removeItem("active_user");
     currentUser = null;
     checkInitialAuthFlow();
+}
+
+function hideAllViews() {
+    const views = document.querySelectorAll(".view-section");
+    views.forEach(v => v.classList.add("hidden"));
 }
 
 function populateFormSemesters(yId, sId, subjId) {
@@ -515,87 +515,4 @@ function trackAndSaveDownload(title, url, action) {
 }
 
 function updateDownloadBadgeCount() {
-    const badge = document.getElementById("dlNavBadge");
-    if (badge) badge.textContent = getLocalData("user_saved_downloads").length;
-}
-
-function openUserDownloads() {
-    hideAllViews();
-    document.getElementById("userDownloadsView").classList.remove("hidden");
-    const grid = document.getElementById("userDownloadsGrid");
-    grid.innerHTML = "";
-    const downloads = getLocalData("user_saved_downloads");
-
-    if (downloads.length === 0) {
-        grid.innerHTML = `<div style="text-align:center; padding:30px;">No saved PDFs yet.</div>`;
-        return;
-    }
-
-    downloads.forEach(item => {
-        const { previewUrl, downloadUrl } = processPdfUrls(item.pdfUrl);
-        const card = document.createElement("div");
-        card.className = "pdf-item-card";
-        card.innerHTML = `
-            <div class="pdf-item-header">
-                <div><b>${item.pdfTitle}</b></div>
-                <div class="pdf-action-btns">
-                    <a href="${previewUrl}" target="_blank" class="action-btn btn-open">View</a>
-                    <a href="${downloadUrl}" target="_blank" class="action-btn btn-download">Download</a>
-                </div>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-}
-
-function openUserUploadPanel() {
-    hideAllViews();
-    document.getElementById("userUploadView").classList.remove("hidden");
-}
-
-function openAdminPanel() {
-    hideAllViews();
-    document.getElementById("adminPanelView").classList.remove("hidden");
-    renderAdminMaterialsList();
-}
-
-function hideAllViews() {
-    ["courseSelectionView", "semesterSelectionView", "subjectSelectionView", "materialsDetailView", "userUploadView", "userDownloadsView", "adminPanelView"]
-    .forEach(id => document.getElementById(id)?.classList.add("hidden"));
-}
-
-function renderAdminMaterialsList() {
-    const list = document.getElementById("adminMaterialList");
-    const mats = getLocalData("materials_data");
-    list.innerHTML = mats.length === 0 ? "<li>No materials found.</li>" : "";
-
-    mats.forEach(m => {
-        const li = document.createElement("li");
-        li.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #e2e8f0;";
-        li.innerHTML = `<span><b>[${m.subject}]</b> ${m.title}</span><button onclick="deleteMaterial('${m.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete</button>`;
-        list.appendChild(li);
-    });
-}
-
-function deleteMaterial(id) {
-    let mats = getLocalData("materials_data").filter(m => m.id !== id);
-    setLocalData("materials_data", mats);
-    renderAdminMaterialsList();
-}
-
-function addActivityLog(text) {
-    let logs = getLocalData("activity_logs");
-    logs.unshift({ text, date: new Date().toLocaleTimeString() });
-    setLocalData("activity_logs", logs);
-    renderHistoryList();
-}
-
-function renderHistoryList() {
-    const historyList = document.getElementById("historyList");
-    const logs = getLocalData("activity_logs");
-    document.getElementById("downloadCount").textContent = logs.length;
-    historyList.innerHTML = logs.length === 0 ? `<li class="empty-msg">No activity yet.</li>` : "";
-    logs.forEach(l => {
-        historyList.innerHTML += `<li style="padding:4px 0; border-bottom:1px solid #f1f5f9;"><i class="fa-solid fa-angle-right"></i> ${l.text}</li>`;
-    });
-}
+    const downlo
