@@ -1,11 +1,11 @@
-// EmailJS Credentials Declarations (PLEASE PUT YOUR REAL KEYS HERE)
-const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // <-- Put your real Public Key here
-const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // <-- Put your real Service ID here
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // <-- Put your real Template ID here
+// EmailJS Credentials Declarations
+const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // Place your EmailJS Public Key here
+const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // Place your EmailJS Service ID here
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // Place your EmailJS Template ID here
 
-const SECRET_ADMIN_KEY = "admin2020"; // Keep this key secret!
+const SECRET_ADMIN_KEY = "admin2020";
 
-// Initialize EmailJS safely
+// EmailJS Initialization
 (function() {
     if (typeof emailjs !== "undefined") {
         try {
@@ -97,7 +97,7 @@ const bcomCaSyllabus = {
     }
 };
 
-// Storage Utilities
+// LocalStorage Helper
 function getLocalData(key) {
     return JSON.parse(localStorage.getItem(key) || "[]");
 }
@@ -139,27 +139,45 @@ function checkInitialAuthFlow() {
     }
 }
 
+// Fixed Separate Auth Mode Logic
 function switchAuthMode(mode) {
     document.getElementById("mainAuthTabs").classList.remove("hidden");
-    document.getElementById("tabRegisterBtn").classList.toggle("active", mode === 'register');
-    document.getElementById("tabLoginBtn").classList.toggle("active", mode === 'login');
+    
+    const regBtn = document.getElementById("tabRegisterBtn");
+    const loginBtn = document.getElementById("tabLoginBtn");
+    const regForm = document.getElementById("registerForm");
+    const loginForm = document.getElementById("loginForm");
+    const forgotForm = document.getElementById("forgotForm");
+    const adminForm = document.getElementById("adminLoginForm");
 
-    document.getElementById("registerForm").classList.toggle("hidden", mode !== 'register');
-    document.getElementById("loginForm").classList.toggle("hidden", mode !== 'login');
-    document.getElementById("forgotForm").classList.add("hidden");
-    document.getElementById("adminLoginForm").classList.add("hidden");
+    // Hide sub forms
+    forgotForm.classList.add("hidden");
+    adminForm.classList.add("hidden");
+
+    if (mode === 'register') {
+        regBtn.classList.add("active");
+        loginBtn.classList.remove("active");
+        regForm.classList.remove("hidden");
+        loginForm.classList.add("hidden");
+    } else if (mode === 'login') {
+        loginBtn.classList.add("active");
+        regBtn.classList.remove("active");
+        loginForm.classList.remove("hidden");
+        regForm.classList.add("hidden");
+    }
 }
 
 function toggleForgotView(e) {
     if (e) e.preventDefault();
-    const isForgotHidden = document.getElementById("forgotForm").classList.contains("hidden");
+    const forgotForm = document.getElementById("forgotForm");
+    const loginForm = document.getElementById("loginForm");
     
-    if (isForgotHidden) {
-        document.getElementById("loginForm").classList.add("hidden");
-        document.getElementById("forgotForm").classList.remove("hidden");
+    if (forgotForm.classList.contains("hidden")) {
+        loginForm.classList.add("hidden");
+        forgotForm.classList.remove("hidden");
     } else {
-        document.getElementById("forgotForm").classList.add("hidden");
-        document.getElementById("loginForm").classList.remove("hidden");
+        forgotForm.classList.add("hidden");
+        loginForm.classList.remove("hidden");
     }
 }
 
@@ -192,10 +210,10 @@ function updateUserStatusUI() {
 }
 
 function setupAuthAndFormEvents() {
-    // 1. User Registration Event
+    // Register Form Handler
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
-        const name = document.getElementById("regName").value;
+        const name = document.getElementById("regName").value.trim();
         const username = document.getElementById("regUsername").value.trim();
         const userId = document.getElementById("regUserId").value.trim();
         const email = document.getElementById("regEmail").value.trim();
@@ -203,7 +221,7 @@ function setupAuthAndFormEvents() {
 
         const users = getLocalData("app_users");
         if (users.some(u => u.email === email)) {
-            alert("This email is already registered! Switching to login.");
+            alert("This email is already registered! Please login.");
             switchAuthMode('login');
             return;
         }
@@ -216,7 +234,7 @@ function setupAuthAndFormEvents() {
         switchAuthMode('login');
     };
 
-    // 2. Normal User Login Event (Direct Redirect without Alert)
+    // Login Form Handler (No popup, direct login)
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("loginEmail").value.trim();
@@ -228,13 +246,13 @@ function setupAuthAndFormEvents() {
         if (found) {
             currentUser = found;
             localStorage.setItem("active_user", JSON.stringify(currentUser));
-            checkInitialAuthFlow(); // Directly login without pop-up message
+            checkInitialAuthFlow();
         } else {
             alert("Invalid Email or Password!");
         }
     };
 
-    // 3. Secret Admin Login Event
+    // Secret Admin Login Handler
     document.getElementById("adminLoginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("adminEmail").value.trim();
@@ -242,7 +260,7 @@ function setupAuthAndFormEvents() {
         const key = document.getElementById("adminKeyInput").value.trim();
 
         if (key !== SECRET_ADMIN_KEY) {
-            alert("Invalid Admin Key!");
+            alert("Invalid Secret Key!");
             return;
         }
 
@@ -251,14 +269,14 @@ function setupAuthAndFormEvents() {
         checkInitialAuthFlow();
     };
 
-    // 4. Forgot Password Event via EmailJS
+    // Forgot Password Handler
     document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
         const userEmail = document.getElementById("forgotEmail").value.trim();
         const submitBtn = this.querySelector(".submit-btn");
 
         if (!EMAILJS_PUBLIC_KEY || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
-            alert("EmailJS is not configured! Please replace placeholders in script.js with real Keys.");
+            alert("EmailJS is not configured yet! Please update credentials in script.js");
             return;
         }
 
@@ -272,10 +290,10 @@ function setupAuthAndFormEvents() {
 
         emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
             .then(function() {
-                alert("Password reset instructions sent to: " + userEmail);
+                alert("Password reset link sent to: " + userEmail);
                 switchAuthMode('login');
             }, function(error) {
-                alert("Failed to send email. Error: " + JSON.stringify(error));
+                alert("Failed to send email. Check EmailJS configuration.");
             })
             .finally(function() {
                 submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Password Reset Link';
@@ -283,7 +301,7 @@ function setupAuthAndFormEvents() {
             });
     };
 
-    // Material Upload Forms
+    // Share & Admin Forms
     document.getElementById("userShareForm").onsubmit = function (e) {
         e.preventDefault();
         handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
@@ -309,7 +327,6 @@ function logoutUser() {
     checkInitialAuthFlow();
 }
 
-// Dropdown Dynamic Logic
 function populateFormSemesters(yId, sId, subjId) {
     const yVal = document.getElementById(yId).value;
     const semSelect = document.getElementById(sId);
@@ -378,7 +395,6 @@ function handleSaveMaterial(yId, sId, subjId, catId, titleId, urlId) {
     addActivityLog(`Shared PDF: ${title} (${subject})`);
 }
 
-// Navigation Functions
 function showHome() {
     hideAllViews();
     document.getElementById("courseSelectionView").classList.remove("hidden");
