@@ -1,14 +1,20 @@
-// EmailJS Credentials Declarations
-const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // <-- यहाँ अपनी Public Key डालें
-const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // <-- यहाँ अपनी Service ID डालें
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // <-- यहाँ अपनी Template ID डालें
+// EmailJS Credentials Declarations (PLEASE PUT YOUR REAL KEYS HERE)
+const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // <-- Put your real Public Key here
+const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // <-- Put your real Service ID here
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // <-- Put your real Template ID here
 
-const ADMIN_SECRET_KEY = "admin2020";
+const SECRET_ADMIN_KEY = "admin2020"; // Keep this key secret!
 
-// Initialize EmailJS
+// Initialize EmailJS safely
 (function() {
-    if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
-        emailjs.init(EMAILJS_PUBLIC_KEY);
+    if (typeof emailjs !== "undefined") {
+        try {
+            if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }
+        } catch (err) {
+            console.error("EmailJS Init Error:", err);
+        }
     }
 })();
 
@@ -125,7 +131,6 @@ function checkInitialAuthFlow() {
         landingOverlay.classList.remove("hidden");
 
         const registeredUsers = getLocalData("app_users");
-        // अगर पहले से यूज़र्स हैं तो सीधा Login टैब खोलें
         if (registeredUsers.length > 0) {
             switchAuthMode('login');
         } else {
@@ -135,23 +140,41 @@ function checkInitialAuthFlow() {
 }
 
 function switchAuthMode(mode) {
+    document.getElementById("mainAuthTabs").classList.remove("hidden");
     document.getElementById("tabRegisterBtn").classList.toggle("active", mode === 'register');
     document.getElementById("tabLoginBtn").classList.toggle("active", mode === 'login');
-    document.getElementById("tabForgotBtn").classList.toggle("active", mode === 'forgot');
 
     document.getElementById("registerForm").classList.toggle("hidden", mode !== 'register');
     document.getElementById("loginForm").classList.toggle("hidden", mode !== 'login');
-    document.getElementById("forgotForm").classList.toggle("hidden", mode !== 'forgot');
+    document.getElementById("forgotForm").classList.add("hidden");
+    document.getElementById("adminLoginForm").classList.add("hidden");
 }
 
-function toggleAdminKeyInput() {
-    const role = document.getElementById("regRole").value;
-    const keyWrapper = document.getElementById("adminKeyWrapper");
-    if (role === "admin") {
-        keyWrapper.classList.remove("hidden");
+function toggleForgotView(e) {
+    if (e) e.preventDefault();
+    const isForgotHidden = document.getElementById("forgotForm").classList.contains("hidden");
+    
+    if (isForgotHidden) {
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("forgotForm").classList.remove("hidden");
     } else {
-        keyWrapper.classList.add("hidden");
+        document.getElementById("forgotForm").classList.add("hidden");
+        document.getElementById("loginForm").classList.remove("hidden");
     }
+}
+
+function openAdminModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById("registerForm").classList.add("hidden");
+    document.getElementById("loginForm").classList.add("hidden");
+    document.getElementById("forgotForm").classList.add("hidden");
+    document.getElementById("mainAuthTabs").classList.add("hidden");
+    document.getElementById("adminLoginForm").classList.remove("hidden");
+}
+
+function closeAdminModal(e) {
+    if (e) e.preventDefault();
+    switchAuthMode('login');
 }
 
 function updateUserStatusUI() {
@@ -159,7 +182,7 @@ function updateUserStatusUI() {
     const adminNavBtn = document.getElementById("adminNavBtn");
 
     if (currentUser) {
-        greeting.textContent = `Logged in: ${currentUser.name} (@${currentUser.username}) - [${currentUser.role.toUpperCase()}]`;
+        greeting.textContent = `Logged in: ${currentUser.name || 'Admin'} - [${currentUser.role.toUpperCase()}]`;
         if (currentUser.role === "admin") {
             adminNavBtn.classList.remove("hidden");
         } else {
@@ -169,7 +192,7 @@ function updateUserStatusUI() {
 }
 
 function setupAuthAndFormEvents() {
-    // 1. Registration Event
+    // 1. User Registration Event
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value;
@@ -177,35 +200,23 @@ function setupAuthAndFormEvents() {
         const userId = document.getElementById("regUserId").value.trim();
         const email = document.getElementById("regEmail").value.trim();
         const password = document.getElementById("regPassword").value;
-        const role = document.getElementById("regRole").value;
-
-        if (role === "admin") {
-            const enteredKey = document.getElementById("adminSecretKey").value;
-            if (enteredKey !== ADMIN_SECRET_KEY) {
-                alert("Incorrect Admin Key! Access Denied.");
-                return;
-            }
-        }
 
         const users = getLocalData("app_users");
         if (users.some(u => u.email === email)) {
-            alert("This email is already registered! Please login.");
+            alert("This email is already registered! Switching to login.");
             switchAuthMode('login');
             return;
         }
 
-        const newUser = { name, username, userId, email, password, role };
+        const newUser = { name, username, userId, email, password, role: "student" };
         users.push(newUser);
         setLocalData("app_users", users);
 
-        alert("Registration Successful! Please login with your details.");
-        
-        // फॉर्म रिसेट करें और सीधे Login Screen पर जाएँ
         document.getElementById("registerForm").reset();
         switchAuthMode('login');
     };
 
-    // 2. Login Event
+    // 2. Normal User Login Event (Direct Redirect without Alert)
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("loginEmail").value.trim();
@@ -217,21 +228,37 @@ function setupAuthAndFormEvents() {
         if (found) {
             currentUser = found;
             localStorage.setItem("active_user", JSON.stringify(currentUser));
-            alert("Login Successful!");
-            checkInitialAuthFlow();
+            checkInitialAuthFlow(); // Directly login without pop-up message
         } else {
             alert("Invalid Email or Password!");
         }
     };
 
-    // 3. Forgot Password Event via EmailJS
+    // 3. Secret Admin Login Event
+    document.getElementById("adminLoginForm").onsubmit = function (e) {
+        e.preventDefault();
+        const email = document.getElementById("adminEmail").value.trim();
+        const password = document.getElementById("adminPassword").value;
+        const key = document.getElementById("adminKeyInput").value.trim();
+
+        if (key !== SECRET_ADMIN_KEY) {
+            alert("Invalid Admin Key!");
+            return;
+        }
+
+        currentUser = { name: "Admin", email: email, role: "admin" };
+        localStorage.setItem("active_user", JSON.stringify(currentUser));
+        checkInitialAuthFlow();
+    };
+
+    // 4. Forgot Password Event via EmailJS
     document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
         const userEmail = document.getElementById("forgotEmail").value.trim();
         const submitBtn = this.querySelector(".submit-btn");
 
-        if (EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
-            alert("EmailJS is not configured yet! Please update Keys in script.js.");
+        if (!EMAILJS_PUBLIC_KEY || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+            alert("EmailJS is not configured! Please replace placeholders in script.js with real Keys.");
             return;
         }
 
@@ -256,7 +283,7 @@ function setupAuthAndFormEvents() {
             });
     };
 
-    // Form Submissions
+    // Material Upload Forms
     document.getElementById("userShareForm").onsubmit = function (e) {
         e.preventDefault();
         handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
