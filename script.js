@@ -1,7 +1,7 @@
 // EmailJS Credentials Declarations
-const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // Place your EmailJS Public Key here
-const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // Place your EmailJS Service ID here
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // Place your EmailJS Template ID here
+const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   
+const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; 
 
 const SECRET_ADMIN_KEY = "admin2020";
 
@@ -139,7 +139,6 @@ function checkInitialAuthFlow() {
     }
 }
 
-// Fixed Separate Auth Mode Logic
 function switchAuthMode(mode) {
     document.getElementById("mainAuthTabs").classList.remove("hidden");
     
@@ -150,7 +149,6 @@ function switchAuthMode(mode) {
     const forgotForm = document.getElementById("forgotForm");
     const adminForm = document.getElementById("adminLoginForm");
 
-    // Hide sub forms
     forgotForm.classList.add("hidden");
     adminForm.classList.add("hidden");
 
@@ -200,7 +198,7 @@ function updateUserStatusUI() {
     const adminNavBtn = document.getElementById("adminNavBtn");
 
     if (currentUser) {
-        greeting.textContent = `Logged in: ${currentUser.name || 'Admin'} - [${currentUser.role.toUpperCase()}]`;
+        greeting.textContent = `Logged in: ${currentUser.name || 'Admin'} (@${currentUser.username || 'admin'}) - [${currentUser.role.toUpperCase()}]`;
         if (currentUser.role === "admin") {
             adminNavBtn.classList.remove("hidden");
         } else {
@@ -210,18 +208,25 @@ function updateUserStatusUI() {
 }
 
 function setupAuthAndFormEvents() {
-    // Register Form Handler
+    // Registration Form
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value.trim();
-        const username = document.getElementById("regUsername").value.trim();
+        const username = document.getElementById("regUsername").value.trim().toLowerCase();
         const userId = document.getElementById("regUserId").value.trim();
-        const email = document.getElementById("regEmail").value.trim();
+        const email = document.getElementById("regEmail").value.trim().toLowerCase();
         const password = document.getElementById("regPassword").value;
 
         const users = getLocalData("app_users");
+
+        // Check if username or email already exists
+        if (users.some(u => u.username === username)) {
+            alert("This Username is already taken! Please choose another.");
+            return;
+        }
+
         if (users.some(u => u.email === email)) {
-            alert("This email is already registered! Please login.");
+            alert("This Email is already registered! Please login.");
             switchAuthMode('login');
             return;
         }
@@ -230,29 +235,34 @@ function setupAuthAndFormEvents() {
         users.push(newUser);
         setLocalData("app_users", users);
 
+        alert("Registration Successful! Now please login.");
         document.getElementById("registerForm").reset();
         switchAuthMode('login');
     };
 
-    // Login Form Handler (No popup, direct login)
+    // Login Form (Checks BOTH Username and Email like Instagram)
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
-        const email = document.getElementById("loginEmail").value.trim();
+        const identifier = document.getElementById("loginIdentifier").value.trim().toLowerCase();
         const password = document.getElementById("loginPassword").value;
 
         const users = getLocalData("app_users");
-        const found = users.find(u => u.email === email && u.password === password);
+        
+        // Find user by Username OR Email
+        const found = users.find(u => 
+            (u.username === identifier || u.email === identifier) && u.password === password
+        );
 
         if (found) {
             currentUser = found;
             localStorage.setItem("active_user", JSON.stringify(currentUser));
             checkInitialAuthFlow();
         } else {
-            alert("Invalid Email or Password!");
+            alert("Invalid Username/Email or Password!");
         }
     };
 
-    // Secret Admin Login Handler
+    // Secret Admin Form
     document.getElementById("adminLoginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("adminEmail").value.trim();
@@ -264,12 +274,12 @@ function setupAuthAndFormEvents() {
             return;
         }
 
-        currentUser = { name: "Admin", email: email, role: "admin" };
+        currentUser = { name: "Admin", username: "admin", email: email, role: "admin" };
         localStorage.setItem("active_user", JSON.stringify(currentUser));
         checkInitialAuthFlow();
     };
 
-    // Forgot Password Handler
+    // Forgot Password Form
     document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
         const userEmail = document.getElementById("forgotEmail").value.trim();
