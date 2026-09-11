@@ -17,7 +17,7 @@
     <div id="landingAuthOverlay" class="landing-auth-overlay">
         <div class="landing-auth-card">
             
-            <!-- Hidden Secret Admin Trigger Link (Small letters in top corner) -->
+            <!-- Hidden Secret Admin Trigger Link -->
             <a href="#" class="secret-admin-link" onclick="openAdminModal(event)">admin</a>
 
             <div class="auth-header">
@@ -34,7 +34,7 @@
             <!-- 1. Registration Form -->
             <form id="registerForm" class="auth-form-body">
                 <input type="text" id="regName" placeholder="Full Name" required>
-                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="text" id="regUsername" placeholder="Username (e.g. rahul123)" required>
                 <input type="text" id="regUserId" placeholder="User ID / Student ID" required>
                 <input type="email" id="regEmail" placeholder="Email Address" required>
                 <input type="password" id="regPassword" placeholder="Create Password" required>
@@ -42,9 +42,9 @@
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-user-plus"></i> Complete Registration</button>
             </form>
 
-            <!-- 2. Clean Separate Login Form (Only Email & Password) -->
+            <!-- 2. Login Form (Now accepts Username OR Email) -->
             <form id="loginForm" class="auth-form-body hidden">
-                <input type="email" id="loginEmail" placeholder="Registered Email Address" required>
+                <input type="text" id="loginIdentifier" placeholder="Username or Email Address" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login Now</button>
                 
@@ -257,7 +257,7 @@
         </footer>
     </div>
 
-    <!-- Fixed Script File -->
+    <!-- Script File -->
     <script src="script.js"></script>
 </body>
 </html>
