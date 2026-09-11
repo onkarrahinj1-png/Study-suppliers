@@ -1,6 +1,18 @@
+// EmailJS Credentials Declarations
+const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // <-- यहाँ अपनी Public Key डालें
+const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // <-- यहाँ अपनी Service ID डालें
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // <-- यहाँ अपनी Template ID डालें
+
 const ADMIN_SECRET_KEY = "admin2020";
 
-// Syllabus Object
+// Initialize EmailJS
+(function() {
+    if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+    }
+})();
+
+// BCom CA Syllabus Data Structure
 const bcomCaSyllabus = {
     fy: {
         title: "FY BCom CA",
@@ -113,6 +125,7 @@ function checkInitialAuthFlow() {
         landingOverlay.classList.remove("hidden");
 
         const registeredUsers = getLocalData("app_users");
+        // अगर पहले से यूज़र्स हैं तो सीधा Login टैब खोलें
         if (registeredUsers.length > 0) {
             switchAuthMode('login');
         } else {
@@ -146,7 +159,7 @@ function updateUserStatusUI() {
     const adminNavBtn = document.getElementById("adminNavBtn");
 
     if (currentUser) {
-        greeting.textContent = `Logged in: ${currentUser.name} (${currentUser.role.toUpperCase()})`;
+        greeting.textContent = `Logged in: ${currentUser.name} (@${currentUser.username}) - [${currentUser.role.toUpperCase()}]`;
         if (currentUser.role === "admin") {
             adminNavBtn.classList.remove("hidden");
         } else {
@@ -160,7 +173,9 @@ function setupAuthAndFormEvents() {
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value;
-        const email = document.getElementById("regEmail").value;
+        const username = document.getElementById("regUsername").value.trim();
+        const userId = document.getElementById("regUserId").value.trim();
+        const email = document.getElementById("regEmail").value.trim();
         const password = document.getElementById("regPassword").value;
         const role = document.getElementById("regRole").value;
 
@@ -174,25 +189,26 @@ function setupAuthAndFormEvents() {
 
         const users = getLocalData("app_users");
         if (users.some(u => u.email === email)) {
-            alert("Email already registered! Switching to Login page.");
+            alert("This email is already registered! Please login.");
             switchAuthMode('login');
             return;
         }
 
-        const newUser = { name, email, password, role };
+        const newUser = { name, username, userId, email, password, role };
         users.push(newUser);
         setLocalData("app_users", users);
 
-        currentUser = newUser;
-        localStorage.setItem("active_user", JSON.stringify(currentUser));
-        alert("Registration Successful!");
-        checkInitialAuthFlow();
+        alert("Registration Successful! Please login with your details.");
+        
+        // फॉर्म रिसेट करें और सीधे Login Screen पर जाएँ
+        document.getElementById("registerForm").reset();
+        switchAuthMode('login');
     };
 
     // 2. Login Event
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
-        const email = document.getElementById("loginEmail").value;
+        const email = document.getElementById("loginEmail").value.trim();
         const password = document.getElementById("loginPassword").value;
 
         const users = getLocalData("app_users");
@@ -208,12 +224,36 @@ function setupAuthAndFormEvents() {
         }
     };
 
-    // 3. Forgot Password Event
+    // 3. Forgot Password Event via EmailJS
     document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
-        const email = document.getElementById("forgotEmail").value;
-        alert("Password reset instructions sent to: " + email);
-        switchAuthMode('login');
+        const userEmail = document.getElementById("forgotEmail").value.trim();
+        const submitBtn = this.querySelector(".submit-btn");
+
+        if (EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+            alert("EmailJS is not configured yet! Please update Keys in script.js.");
+            return;
+        }
+
+        submitBtn.innerText = "Sending Email...";
+        submitBtn.disabled = true;
+
+        const templateParams = {
+            to_email: userEmail,
+            message: "Password reset request received for Study Suppliers account."
+        };
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+            .then(function() {
+                alert("Password reset instructions sent to: " + userEmail);
+                switchAuthMode('login');
+            }, function(error) {
+                alert("Failed to send email. Error: " + JSON.stringify(error));
+            })
+            .finally(function() {
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Password Reset Link';
+                submitBtn.disabled = false;
+            });
     };
 
     // Form Submissions
@@ -311,7 +351,7 @@ function handleSaveMaterial(yId, sId, subjId, catId, titleId, urlId) {
     addActivityLog(`Shared PDF: ${title} (${subject})`);
 }
 
-// Interface Navigation
+// Navigation Functions
 function showHome() {
     hideAllViews();
     document.getElementById("courseSelectionView").classList.remove("hidden");
