@@ -16,19 +16,22 @@
     <!-- Authentication Overlay -->
     <div id="landingAuthOverlay" class="landing-auth-overlay">
         <div class="landing-auth-card">
+            
+            <!-- Hidden Secret Admin Trigger Link (Small letters in top corner) -->
+            <a href="#" class="secret-admin-link" onclick="openAdminModal(event)">admin</a>
+
             <div class="auth-header">
                 <i class="fa-solid fa-book-open-reader auth-logo-icon"></i>
                 <h2>Study <span>Suppliers</span></h2>
                 <p>Welcome! Please Register or Login to access portal.</p>
             </div>
 
-            <div class="auth-tabs">
+            <div class="auth-tabs" id="mainAuthTabs">
                 <button type="button" id="tabRegisterBtn" class="auth-tab-btn active" onclick="switchAuthMode('register')">Register</button>
                 <button type="button" id="tabLoginBtn" class="auth-tab-btn" onclick="switchAuthMode('login')">Login</button>
-                <button type="button" id="tabForgotBtn" class="auth-tab-btn" onclick="switchAuthMode('forgot')">Forgot Password</button>
             </div>
 
-            <!-- 1. Registration Form -->
+            <!-- 1. Registration Form (Normal Users Only) -->
             <form id="registerForm" class="auth-form-body">
                 <input type="text" id="regName" placeholder="Full Name" required>
                 <input type="text" id="regUsername" placeholder="Username" required>
@@ -36,15 +39,6 @@
                 <input type="email" id="regEmail" placeholder="Email Address" required>
                 <input type="password" id="regPassword" placeholder="Create Password" required>
                 
-                <select id="regRole" onchange="toggleAdminKeyInput()">
-                    <option value="student">Student Account</option>
-                    <option value="admin">Admin Account</option>
-                </select>
-
-                <div id="adminKeyWrapper" class="hidden">
-                    <input type="password" id="adminSecretKey" placeholder="Enter Secret Admin Key (e.g. admin2020)">
-                </div>
-
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-user-plus"></i> Complete Registration</button>
             </form>
 
@@ -53,14 +47,35 @@
                 <input type="email" id="loginEmail" placeholder="Registered Email Address" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login Now</button>
+                
+                <!-- Forgot Password in small letters placed below Login -->
+                <div class="forgot-link-wrapper">
+                    <a href="#" class="forgot-pwd-link" onclick="toggleForgotView(event)">forgot password?</a>
+                </div>
             </form>
 
-            <!-- 3. Forgot Password Form -->
+            <!-- 3. Forgot Password Form (Sub-view of Login) -->
             <form id="forgotForm" class="auth-form-body hidden">
-                <p style="font-size:0.85rem; color:#64748b;">Enter your registered Email. Password reset details will be sent via EmailJS.</p>
+                <p style="font-size:0.8rem; color:#64748b; text-align:center;">Enter your registered email to receive password reset instructions.</p>
                 <input type="email" id="forgotEmail" placeholder="Registered Email Address" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-paper-plane"></i> Send Password Reset Link</button>
+                <div class="forgot-link-wrapper">
+                    <a href="#" class="forgot-pwd-link" onclick="toggleForgotView(event)">back to login</a>
+                </div>
             </form>
+
+            <!-- 4. Secret Hidden Admin Login Form -->
+            <form id="adminLoginForm" class="auth-form-body hidden">
+                <h4 style="text-align:center; color:#0f172a; margin-bottom:5px;">Admin Portal</h4>
+                <input type="email" id="adminEmail" placeholder="Admin Email" required>
+                <input type="password" id="adminPassword" placeholder="Admin Password" required>
+                <input type="password" id="adminKeyInput" placeholder="Secret Key" required>
+                <button type="submit" class="submit-btn" style="background:#0f172a;"><i class="fa-solid fa-user-shield"></i> Admin Login</button>
+                <div class="forgot-link-wrapper">
+                    <a href="#" class="forgot-pwd-link" onclick="closeAdminModal(event)">back to user login</a>
+                </div>
+            </form>
+
         </div>
     </div>
 
