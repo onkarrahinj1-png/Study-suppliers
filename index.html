@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +26,7 @@
                 <button type="button" id="tabForgotBtn" class="auth-tab-btn" onclick="switchAuthMode('forgot')">Forgot Password</button>
             </div>
 
-            <!-- 1. Registration Form (Default View First Time) -->
+            <!-- 1. Registration Form -->
             <form id="registerForm" class="auth-form-body">
                 <input type="text" id="regName" placeholder="Full Name" required>
                 <input type="email" id="regEmail" placeholder="Email Address" required>
@@ -238,6 +238,7 @@
         </footer>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <!-- Script File Linked as Regular Script to Ensure Global Functions Availability -->
+    <script src="script.js"></script>
 </body>
 </html>
