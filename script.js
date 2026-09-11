@@ -209,6 +209,7 @@ function updateUserStatusUI() {
 }
 
 function setupAuthAndFormEvents() {
+    // 1. Fixed Registration Form Event
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value.trim();
@@ -216,6 +217,11 @@ function setupAuthAndFormEvents() {
         const userId = document.getElementById("regUserId").value.trim();
         const email = document.getElementById("regEmail").value.trim();
         const password = document.getElementById("regPassword").value;
+
+        if (!name || !email || !password) {
+            alert("Please fill in all required fields!");
+            return;
+        }
 
         const users = getLocalData("app_users");
         if (users.some(u => u.email === email)) {
@@ -228,11 +234,12 @@ function setupAuthAndFormEvents() {
         users.push(newUser);
         setLocalData("app_users", users);
 
+        alert("Registration Successful! Now you can login.");
         document.getElementById("registerForm").reset();
-        alert("Registration successful! Please login.");
         switchAuthMode('login');
     };
 
+    // 2. Fixed Login Form Event
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("loginEmail").value.trim();
@@ -250,6 +257,7 @@ function setupAuthAndFormEvents() {
         }
     };
 
+    // 3. Admin Login Event
     document.getElementById("adminLoginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("adminEmail").value.trim();
@@ -266,6 +274,7 @@ function setupAuthAndFormEvents() {
         checkInitialAuthFlow();
     };
 
+    // 4. Forgot Password Event
     document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
         const userEmail = document.getElementById("forgotEmail").value.trim();
@@ -414,7 +423,7 @@ function openYear(yearKey) {
         const card = document.createElement("div");
         card.className = "course-card";
         card.onclick = function() { openSemester(yearKey, sKey); };
-        card.innerHTML = `<i class="fa-solid fa-book-bookmark course-icon"></i><h3>${sem.title}</h3><p>${sem.subjects.length} Subjects Included</p><button class="explore-btn">Open Semester</button>`;
+        card.innerHTML = `<i class="fa-solid fa-book-bookmark course-icon"></i><h3>${sem.title}</h3><p>${sem.subjects.length} Subjects Included</p><button type="button" class="explore-btn">Open Semester</button>`;
         grid.appendChild(card);
     });
 }
@@ -439,7 +448,7 @@ function openSemester(yearKey, semKey) {
         const card = document.createElement("div");
         card.className = "subject-card";
         card.onclick = function() { openSubjectMaterials(yearKey, semKey, subj.name); };
-        card.innerHTML = `<i class="fa-solid ${subj.isPractical ? 'fa-laptop-code' : 'fa-book'} subject-icon"></i><h3>${subj.name}</h3><p>${subj.isPractical ? 'Theory & Practical' : 'Theory Subject'}</p><button class="explore-btn">View PDFs</button>`;
+        card.innerHTML = `<i class="fa-solid ${subj.isPractical ? 'fa-laptop-code' : 'fa-book'} subject-icon"></i><h3>${subj.name}</h3><p>${subj.isPractical ? 'Theory & Practical' : 'Theory Subject'}</p><button type="button" class="explore-btn">View PDFs</button>`;
         grid.appendChild(card);
     });
 }
@@ -506,13 +515,4 @@ function renderSubjectMaterials(yearKey, semKey, subjectName) {
 
 function trackAndSaveDownload(title, url, action) {
     let downloads = getLocalData("user_saved_downloads");
-    if (!downloads.some(d => d.pdfTitle === title)) {
-        downloads.push({ pdfTitle: title, pdfUrl: url });
-        setLocalData("user_saved_downloads", downloads);
-    }
-    addActivityLog(`${action === 'download' ? 'Downloaded' : 'Viewed'} ${title}`);
-    updateDownloadBadgeCount();
-}
-
-function updateDownloadBadgeCount() {
-    const downlo
+    if (!downloads.some(d => d.pdfTitle === titl
