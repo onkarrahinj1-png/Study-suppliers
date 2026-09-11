@@ -13,7 +13,7 @@ body {
     min-height: 100vh;
 }
 
-/* Landing Page Authentication Window */
+/* Landing Overlay */
 .landing-auth-overlay {
     position: fixed;
     top: 0;
@@ -38,7 +38,6 @@ body {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
-/* Discreet Hidden Admin Link */
 .secret-admin-link {
     position: absolute;
     top: 12px;
@@ -124,7 +123,6 @@ body {
     width: 100%;
 }
 
-/* Forgot Password Link in Small Letters Below Login */
 .forgot-link-wrapper {
     text-align: center;
     margin-top: 6px;
@@ -142,7 +140,6 @@ body {
     text-decoration: underline;
 }
 
-/* Header & Portal Styles */
 header {
     background: #0f172a;
     color: #ffffff;
@@ -265,7 +262,6 @@ nav button:hover {
     flex: 1;
 }
 
-/* Grids */
 .course-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -385,7 +381,6 @@ nav button:hover {
     border: 1px solid #e2e8f0;
 }
 
-/* PDF Items */
 .pdf-item-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
