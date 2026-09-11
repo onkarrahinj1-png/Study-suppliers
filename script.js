@@ -2,6 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { 
     getFirestore, collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+    getAuth, sendPasswordResetEmail 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // Firebase Configuration from your Screenshot
 const firebaseConfig = {
@@ -14,15 +17,18 @@ const firebaseConfig = {
     measurementId: "G-6G71DGK3HM"
 };
 
-let app, db;
+let app, db, auth;
 try {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    auth = getAuth(app);
 } catch (e) {
     console.warn("Firebase Running in Local Fallback Mode");
 }
 
-// BCom CA Syllabus & Practical Subject Rules
+const ADMIN_SECRET_KEY = "admin2020";
+
+// Updated BCom CA Syllabus (Semester 3 Updated with PHP & Cyber Security)
 const bcomCaSyllabus = {
     fy: {
         title: "FY BCom CA",
@@ -56,17 +62,17 @@ const bcomCaSyllabus = {
                 title: "Semester 3",
                 subjects: [
                     { name: "Data Structure (DS)", isPractical: true },
+                    { name: "PHP Programming", isPractical: true },
+                    { name: "Cyber Security", isPractical: false },
                     { name: "Web Development", isPractical: true },
-                    { name: "Cost Accounting", isPractical: false },
-                    { name: "Business Regulatory Framework", isPractical: false },
-                    { name: "Human Resource Management", isPractical: false }
+                    { name: "Cost Accounting", isPractical: false }
                 ]
             },
             sem4: {
                 title: "Semester 4",
                 subjects: [
-                    { name: "PHP Programming", isPractical: true },
                     { name: "SY Project", isPractical: true },
+                    { name: "Advanced Web Tech", isPractical: true },
                     { name: "Corporate Accounting", isPractical: false },
                     { name: "Computer Networks", isPractical: false },
                     { name: "MIS", isPractical: false }
@@ -110,74 +116,130 @@ let currentSelectedSem = "";
 let currentSelectedSubject = "";
 
 document.addEventListener("DOMContentLoaded", function () {
-    updateUserStatusUI();
-    setupFormEvents();
+    checkInitialAuthFlow();
+    setupAuthAndFormEvents();
     renderHistoryList();
     updateDownloadBadgeCount();
 });
 
-function updateUserStatusUI() {
-    const greeting = document.getElementById("userGreeting");
-    const adminNavBtn = document.getElementById("adminNavBtn");
-    const authNavBtn = document.getElementById("authNavBtn");
+function checkInitialAuthFlow() {
+    const landingOverlay = document.getElementById("landingAuthOverlay");
+    const portalContent = document.getElementById("portalMainContent");
 
     if (currentUser) {
-        greeting.textContent = `Logged in as: ${currentUser.name} (${currentUser.role.toUpperCase()})`;
-        authNavBtn.innerHTML = `<button type="button" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>`;
-        if (currentUser.role === "admin") adminNavBtn.style.display = "inline-block";
-        else adminNavBtn.style.display = "none";
+        landingOverlay.classList.add("hidden");
+        portalContent.classList.remove("hidden");
+        updateUserStatusUI();
     } else {
-        greeting.textContent = "Guest Mode (Login required for Admin Panel)";
-        authNavBtn.innerHTML = `<button type="button" onclick="openAuthModal()"><i class="fa-solid fa-right-to-bracket"></i> Login / Register</button>`;
-        adminNavBtn.style.display = "none";
+        portalContent.classList.add("hidden");
+        landingOverlay.classList.remove("hidden");
+
+        const registeredUsers = getLocalData("app_users");
+        if (registeredUsers.length > 0) switchAuthMode('login');
+        else switchAuthMode('register');
     }
 }
 
-// Auth Handlers
-window.openAuthModal = () => document.getElementById("authModal").classList.remove("hidden");
-window.closeAuthModal = () => document.getElementById("authModal").classList.add("hidden");
+window.switchAuthMode = function(mode) {
+    document.getElementById("tabRegisterBtn").classList.toggle("active", mode === 'register');
+    document.getElementById("tabLoginBtn").classList.toggle("active", mode === 'login');
+    document.getElementById("tabForgotBtn").classList.toggle("active", mode === 'forgot');
 
-window.switchAuthTab = function(tab) {
-    document.getElementById("loginTabBtn").classList.toggle("active", tab === 'login');
-    document.getElementById("regTabBtn").classList.toggle("active", tab === 'register');
-    document.getElementById("loginForm").classList.toggle("hidden", tab !== 'login');
-    document.getElementById("registerForm").classList.toggle("hidden", tab !== 'register');
+    document.getElementById("registerForm").classList.toggle("hidden", mode !== 'register');
+    document.getElementById("loginForm").classList.toggle("hidden", mode !== 'login');
+    document.getElementById("forgotForm").classList.toggle("hidden", mode !== 'forgot');
 };
 
-function setupFormEvents() {
-    document.getElementById("loginForm").onsubmit = function (e) {
-        e.preventDefault();
-        const email = document.getElementById("loginEmail").value;
-        const users = getLocalData("app_users");
-        const found = users.find(u => u.email === email);
+window.toggleAdminKeyInput = function() {
+    const role = document.getElementById("regRole").value;
+    const keyWrapper = document.getElementById("adminKeyWrapper");
+    if (role === "admin") keyWrapper.classList.remove("hidden");
+    else keyWrapper.classList.add("hidden");
+};
 
-        if (found) currentUser = found;
-        else currentUser = { name: email.split("@")[0], email, role: email.includes("admin") ? "admin" : "student" };
+function updateUserStatusUI() {
+    const greeting = document.getElementById("userGreeting");
+    const adminNavBtn = document.getElementById("adminNavBtn");
 
-        localStorage.setItem("active_user", JSON.stringify(currentUser));
-        updateUserStatusUI();
-        closeAuthModal();
-        alert("Login Successful!");
-    };
+    if (currentUser) {
+        greeting.textContent = `Logged in: ${currentUser.name} (${currentUser.role.toUpperCase()})`;
+        if (currentUser.role === "admin") adminNavBtn.classList.remove("hidden");
+        else adminNavBtn.classList.add("hidden");
+    }
+}
 
+function setupAuthAndFormEvents() {
+    // 1. Register Form
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value;
         const email = document.getElementById("regEmail").value;
+        const password = document.getElementById("regPassword").value;
         const role = document.getElementById("regRole").value;
 
+        if (role === "admin") {
+            const enteredKey = document.getElementById("adminSecretKey").value;
+            if (enteredKey !== ADMIN_SECRET_KEY) {
+                alert("Incorrect Admin Key! Access Denied.");
+                return;
+            }
+        }
+
         const users = getLocalData("app_users");
-        const newUser = { name, email, role };
+        if (users.some(u => u.email === email)) {
+            alert("Email already registered! Please Login.");
+            switchAuthMode('login');
+            return;
+        }
+
+        const newUser = { name, email, password, role };
         users.push(newUser);
         setLocalData("app_users", users);
 
         currentUser = newUser;
         localStorage.setItem("active_user", JSON.stringify(currentUser));
-        updateUserStatusUI();
-        closeAuthModal();
         alert("Registration Successful!");
+        checkInitialAuthFlow();
     };
 
+    // 2. Login Form
+    document.getElementById("loginForm").onsubmit = function (e) {
+        e.preventDefault();
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const users = getLocalData("app_users");
+        const found = users.find(u => u.email === email && u.password === password);
+
+        if (found) {
+            currentUser = found;
+            localStorage.setItem("active_user", JSON.stringify(currentUser));
+            alert("Login Successful!");
+            checkInitialAuthFlow();
+        } else {
+            alert("Invalid Email or Password!");
+        }
+    };
+
+    // 3. Forgot Password Form
+    document.getElementById("forgotForm").onsubmit = async function (e) {
+        e.preventDefault();
+        const email = document.getElementById("forgotEmail").value;
+
+        if (auth) {
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Password reset link sent to your Email!");
+            } catch (err) {
+                alert("Password reset requested. Check your email or try again.");
+            }
+        } else {
+            alert("Password reset instructions sent to " + email);
+        }
+        switchAuthMode('login');
+    };
+
+    // Share & Admin Forms
     document.getElementById("userShareForm").onsubmit = async function (e) {
         e.preventDefault();
         await handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
@@ -200,8 +262,7 @@ function setupFormEvents() {
 window.logoutUser = function() {
     localStorage.removeItem("active_user");
     currentUser = null;
-    updateUserStatusUI();
-    showHome();
+    checkInitialAuthFlow();
 };
 
 // Form Dropdown Helpers
@@ -252,7 +313,6 @@ window.populateCategories = function (yId, sId, subjId, catId) {
     catSelect.appendChild(new Option("Question Papers", "Question Papers"));
     catSelect.appendChild(new Option("Reference PDFs", "Reference PDFs"));
 
-    // Allow Practical Files category ONLY for Practical subjects
     if (subjObj && subjObj.isPractical) {
         catSelect.appendChild(new Option("Practical Files", "Practical Files"));
     }
