@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Suppliers - BCom CA Portal</title>
-    <!-- FontAwesome Font Icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Local CSS File -->
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- CSS File -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Landing Authentication Overlay Block -->
+    <!-- Authentication Overlay -->
     <div id="landingAuthOverlay" class="landing-auth-overlay">
         <div class="landing-auth-card">
             <div class="auth-header">
                 <i class="fa-solid fa-book-open-reader auth-logo-icon"></i>
                 <h2>Study <span>Suppliers</span></h2>
-                <p>Welcome! Please Login or Register to Access BCom CA Study Portal.</p>
+                <p>Welcome! Please Register or Login to access portal.</p>
             </div>
 
             <div class="auth-tabs">
@@ -29,6 +31,8 @@
             <!-- 1. Registration Form -->
             <form id="registerForm" class="auth-form-body">
                 <input type="text" id="regName" placeholder="Full Name" required>
+                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="text" id="regUserId" placeholder="User ID / Student ID" required>
                 <input type="email" id="regEmail" placeholder="Email Address" required>
                 <input type="password" id="regPassword" placeholder="Create Password" required>
                 
@@ -46,21 +50,21 @@
 
             <!-- 2. Login Form -->
             <form id="loginForm" class="auth-form-body hidden">
-                <input type="email" id="loginEmail" placeholder="Email Address" required>
+                <input type="email" id="loginEmail" placeholder="Registered Email Address" required>
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login Now</button>
             </form>
 
             <!-- 3. Forgot Password Form -->
             <form id="forgotForm" class="auth-form-body hidden">
-                <p style="font-size:0.85rem; color:#64748b;">Enter your registered Email. Password reset link will be sent to your email.</p>
+                <p style="font-size:0.85rem; color:#64748b;">Enter your registered Email. Password reset details will be sent via EmailJS.</p>
                 <input type="email" id="forgotEmail" placeholder="Registered Email Address" required>
                 <button type="submit" class="submit-btn"><i class="fa-solid fa-paper-plane"></i> Send Password Reset Link</button>
             </form>
         </div>
     </div>
 
-    <!-- Main Website Container (Hidden Until Logged In) -->
+    <!-- Main Website Portal -->
     <div id="portalMainContent" class="hidden">
         <header>
             <div class="logo">
@@ -238,7 +242,7 @@
         </footer>
     </div>
 
-    <!-- Script File Linked as Regular Script to Ensure Global Functions Availability -->
+    <!-- Script File -->
     <script src="script.js"></script>
 </body>
 </html>
