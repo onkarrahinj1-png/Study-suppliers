@@ -4,21 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Suppliers - Academic Portal</title>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Separate CSS File -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Auth Overlay (Registration & Login) -->
+    <!-- Auth Overlay (Registration, Login & Hidden Secret Admin) -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-card">
             
+            <!-- Chota Secret Admin Link Kono me -->
             <a href="#" class="secret-admin-link" onclick="openAdminModal(event)">admin</a>
 
             <div class="auth-header">
-                <i class="fa-solid fa-book-open-reader auth-logo"></i>
+                <div class="brand-badge">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
                 <h2>Study <span>Suppliers</span></h2>
-                <p>Register or Login to continue</p>
+                <p>Access notes, question papers & syllabus</p>
             </div>
 
             <div class="auth-tabs" id="mainAuthTabs">
@@ -26,107 +33,123 @@
                 <button type="button" id="tabLoginBtn" class="auth-tab-btn" onclick="switchAuthMode('login')">Login</button>
             </div>
 
-            <!-- Student Registration Form -->
-            <form id="registerForm" class="auth-form-body">
-                <input type="text" id="regName" placeholder="Full Name" required>
-                <input type="text" id="regUsername" placeholder="Username (e.g. rahul123)" required>
-                <input type="text" id="regStudentId" placeholder="Student Roll ID" required>
-                <input type="email" id="regEmail" placeholder="Email Address" required>
-                <input type="password" id="regPassword" placeholder="Create Password" required>
-                <button type="submit" class="submit-btn"><i class="fa-solid fa-user-plus"></i> Register</button>
+            <!-- Registration Form -->
+            <form id="registerForm" class="auth-form">
+                <div class="input-group">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" id="regName" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-at"></i>
+                    <input type="text" id="regUsername" placeholder="Username (e.g. rahul123)" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-id-card"></i>
+                    <input type="text" id="regStudentId" placeholder="Student Roll / ID" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" id="regEmail" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="regPassword" placeholder="Create Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Create Account</button>
             </form>
 
-            <!-- Login Form (Username OR Email) -->
-            <form id="loginForm" class="auth-form-body hidden">
-                <input type="text" id="loginIdentifier" placeholder="Username or Registered Email" required>
-                <input type="password" id="loginPassword" placeholder="Password" required>
-                <button type="submit" class="submit-btn"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+            <!-- Login Form (Username OR Email Supported) -->
+            <form id="loginForm" class="auth-form hidden">
+                <div class="input-group">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" id="loginIdentifier" placeholder="Username or Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
             </form>
 
-            <!-- Admin Secret Key Login Form -->
-            <form id="adminLoginForm" class="auth-form-body hidden">
-                <h4 class="admin-form-title">Admin Login Portal</h4>
-                <input type="email" id="adminEmail" placeholder="Registered Email" required>
-                <input type="password" id="adminPassword" placeholder="Password" required>
-                <input type="password" id="adminKeyInput" placeholder="Secret Key (admin2020)" required>
-                <button type="submit" class="submit-btn admin-btn"><i class="fa-solid fa-user-shield"></i> Access Admin Dashboard</button>
+            <!-- Secret Admin Login Form (Requires Key: admin2020) -->
+            <form id="adminLoginForm" class="auth-form hidden">
+                <div class="admin-title-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Admin Access Portal</span>
+                </div>
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" id="adminEmail" placeholder="Registered Admin Email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="adminPassword" placeholder="Password" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="adminKeyInput" placeholder="Secret Key (admin2020)" required>
+                </div>
+                <button type="submit" class="btn btn-dark"><i class="fa-solid fa-user-shield"></i> Unlock Admin Panel</button>
                 <div class="back-link-wrapper">
-                    <a href="#" onclick="closeAdminModal(event)">Back to Student Login</a>
+                    <a href="#" onclick="closeAdminModal(event)">← Back to Student Login</a>
                 </div>
             </form>
 
         </div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Application View -->
     <div id="portalMainContent" class="hidden">
-        <header>
+        <header class="app-header">
             <div class="logo">
-                <i class="fa-solid fa-book-open-reader"></i>
+                <i class="fa-solid fa-graduation-cap"></i>
                 <h1>Study <span>Suppliers</span></h1>
             </div>
             <nav>
                 <ul>
-                    <li><button type="button" onclick="showHome()"><i class="fa-solid fa-house"></i> Home</button></li>
+                    <li><button type="button" class="nav-btn" onclick="showHome()"><i class="fa-solid fa-house"></i> Home</button></li>
                     <li id="adminNavBtn" class="hidden">
-                        <button type="button" class="admin-nav-link" onclick="openAdminPanel()"><i class="fa-solid fa-user-shield"></i> Admin Dashboard</button>
+                        <button type="button" class="nav-btn btn-admin" onclick="alert('Admin Panel Access Granted!')"><i class="fa-solid fa-user-shield"></i> Admin Dashboard</button>
                     </li>
                     <li>
-                        <button type="button" class="logout-btn" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        <button type="button" class="nav-btn btn-logout" onclick="logoutUser()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                     </li>
                 </ul>
             </nav>
         </header>
 
         <main class="container">
-            <section class="hero">
-                <h2>Academic Notes & Materials Portal</h2>
-                <div id="userGreeting" class="user-status-bar">Logged in as: User</div>
+            <section class="hero-card">
+                <div class="hero-text">
+                    <h2>Academic Materials & Study Resources</h2>
+                    <div id="userGreeting" class="user-greeting">Logged in as: Guest</div>
+                </div>
             </section>
 
-            <!-- Home Course Grid -->
-            <div id="courseSelectionView" class="view-section">
-                <h2 class="section-title">Select Year</h2>
-                <div class="course-grid">
-                    <div class="course-card" onclick="alert('Year selected!')"><h3>FY BCom CA</h3></div>
-                    <div class="course-card" onclick="alert('Year selected!')"><h3>SY BCom CA</h3></div>
-                    <div class="course-card" onclick="alert('Year selected!')"><h3>TY BCom CA</h3></div>
-                </div>
-            </div>
-
-            <!-- Admin Panel Dashboard -->
-            <div id="adminPanelView" class="view-section hidden">
-                <button type="button" class="back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
-                <h2 class="section-title"><i class="fa-solid fa-user-shield"></i> Admin Control Panel</h2>
-                
-                <!-- Registered Users List Section -->
-                <div class="admin-box">
-                    <h3><i class="fa-solid fa-users"></i> Registered Users</h3>
-                    <div class="table-responsive">
-                        <table id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Username</th>
-                                    <th>Student ID</th>
-                                    <th>Email</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="registeredUsersBody"></tbody>
-                        </table>
+            <section id="courseSelectionView" class="section-block">
+                <h3 class="section-heading">Select Academic Year</h3>
+                <div class="card-grid">
+                    <div class="year-card" onclick="alert('Opening FY BCom CA Notes...')">
+                        <div class="card-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+                        <h3>FY BCom CA</h3>
+                        <p>First Year Materials</p>
+                    </div>
+                    <div class="year-card" onclick="alert('Opening SY BCom CA Notes...')">
+                        <div class="card-icon"><i class="fa-solid fa-book-open"></i></div>
+                        <h3>SY BCom CA</h3>
+                        <p>Second Year Materials</p>
+                    </div>
+                    <div class="year-card" onclick="alert('Opening TY BCom CA Notes...')">
+                        <div class="card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <h3>TY BCom CA</h3>
+                        <p>Third Year Materials</p>
                     </div>
                 </div>
-
-                <!-- Materials Delete/Manage Section -->
-                <div class="admin-box" style="margin-top: 20px;">
-                    <h3><i class="fa-solid fa-folder-open"></i> Manage Files / Materials</h3>
-                    <ul id="adminMaterialList" class="admin-list"></ul>
-                </div>
-            </div>
+            </section>
         </main>
     </div>
 
+    <!-- Separate JS File -->
     <script src="script.js"></script>
 </body>
 </html>
