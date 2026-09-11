@@ -1,9 +1,4 @@
-// LocalStorage based DB Management
 let usersDB = JSON.parse(localStorage.getItem("app_users")) || [];
-let materialsDB = JSON.parse(localStorage.getItem("app_materials")) || [
-    { id: 1, title: "DBMS Unit 1 Notes.pdf" },
-    { id: 2, title: "Java Programming Question Bank.pdf" }
-];
 let currentUser = JSON.parse(localStorage.getItem("active_user")) || null;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -11,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function () {
     setupFormEvents();
 });
 
-// Auth state handling
 function checkInitialAuthFlow() {
     const authOverlay = document.getElementById("authOverlay");
     const portalContent = document.getElementById("portalMainContent");
@@ -56,13 +50,12 @@ function closeAdminModal(e) {
     switchAuthMode('login');
 }
 
-// Upper Header and Status Fix
 function updateUserStatusUI() {
     const greeting = document.getElementById("userGreeting");
     const adminNavBtn = document.getElementById("adminNavBtn");
 
     if (currentUser) {
-        greeting.innerHTML = `Welcome <b>${currentUser.name}</b> (@${currentUser.username}) &nbsp;|&nbsp; Role: <span style="text-transform:uppercase; color:#0284c7;">${currentUser.role}</span>`;
+        greeting.innerHTML = `Logged in as: <b>${currentUser.name}</b> (@${currentUser.username}) &nbsp;|&nbsp; Role: <span style="text-transform:uppercase; font-weight:700;">${currentUser.role}</span>`;
         
         if (currentUser.role === "admin") {
             adminNavBtn.classList.remove("hidden");
@@ -72,9 +65,8 @@ function updateUserStatusUI() {
     }
 }
 
-// Registration, Username/Email Login & Secret Key Validation
 function setupFormEvents() {
-    // 1. User Registration
+    // 1. Registration Logic
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value.trim();
@@ -83,10 +75,10 @@ function setupFormEvents() {
         const email = document.getElementById("regEmail").value.trim().toLowerCase();
         const password = document.getElementById("regPassword").value;
 
-        // Check Duplicate User
+        // Duplicate Username or Email check
         const exists = usersDB.some(u => u.username === username || u.email === email);
         if (exists) {
-            alert("Username or Email already exists!");
+            alert("Username or Email already registered!");
             return;
         }
 
@@ -94,18 +86,18 @@ function setupFormEvents() {
         usersDB.push(newUser);
         localStorage.setItem("app_users", JSON.stringify(usersDB));
 
-        alert("Registration Successful! Now you can Login.");
+        alert("Registration Successful! Now login with your Username or Email.");
         this.reset();
         switchAuthMode('login');
     };
 
-    // 2. User Login (Supports Username OR Email)
+    // 2. Dual Login (Username OR Email)
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
         const input = document.getElementById("loginIdentifier").value.trim().toLowerCase();
         const pwd = document.getElementById("loginPassword").value;
 
-        // Match against both Username or Email
+        // Check against either Username or Email
         const user = usersDB.find(u => (u.username === input || u.email === input) && u.password === pwd);
 
         if (user) {
@@ -117,7 +109,7 @@ function setupFormEvents() {
         }
     };
 
-    // 3. Secret Key Admin Login Validation
+    // 3. Secret Admin Login Validation (Key: admin2020)
     document.getElementById("adminLoginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("adminEmail").value.trim().toLowerCase();
@@ -125,20 +117,19 @@ function setupFormEvents() {
         const key = document.getElementById("adminKeyInput").value.trim();
 
         if (key !== "admin2020") {
-            alert("Invalid Secret Admin Key!");
+            alert("Invalid Secret Key!");
             return;
         }
 
-        // Validate Account credentials
         let user = usersDB.find(u => u.email === email && u.password === pwd);
 
         if (user) {
-            // Give Admin role session access even if registered as student
+            // Upgrade role to 'admin' because of correct key
             currentUser = { ...user, role: "admin" };
             localStorage.setItem("active_user", JSON.stringify(currentUser));
             checkInitialAuthFlow();
         } else {
-            alert("No user found with these Email & Password details!");
+            alert("Account not found! Please register or check Email/Password.");
         }
     };
 }
@@ -149,74 +140,6 @@ function logoutUser() {
     checkInitialAuthFlow();
 }
 
-// Admin Panel View and Deletions
-function openAdminPanel() {
-    hideAllViews();
-    document.getElementById("adminPanelView").classList.remove("hidden");
-    renderUsersList();
-    renderMaterialsList();
-}
-
-function renderUsersList() {
-    const tbody = document.getElementById("registeredUsersBody");
-    tbody.innerHTML = "";
-
-    if (usersDB.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No Users Registered Yet</td></tr>`;
-        return;
-    }
-
-    usersDB.forEach(user => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${user.name}</td>
-                <td>@${user.username}</td>
-                <td>${user.studentId}</td>
-                <td>${user.email}</td>
-                <td>
-                    <button onclick="deleteUser(${user.id})" style="background:#e11d48; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
-function deleteUser(userId) {
-    if (confirm("Are you sure you want to delete this user registration?")) {
-        usersDB = usersDB.filter(u => u.id !== userId);
-        localStorage.setItem("app_users", JSON.stringify(usersDB));
-        renderUsersList();
-    }
-}
-
-function renderMaterialsList() {
-    const list = document.getElementById("adminMaterialList");
-    list.innerHTML = "";
-
-    materialsDB.forEach(mat => {
-        list.innerHTML += `
-            <li style="display:flex; justify-content:space-between; margin-top:8px; background:#f1f5f9; padding:8px; border-radius:4px;">
-                <span>${mat.title}</span>
-                <button onclick="deleteMaterial(${mat.id})" style="background:#e11d48; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete File</button>
-            </li>
-        `;
-    });
-}
-
-function deleteMaterial(matId) {
-    if (confirm("Are you sure you want to delete this file?")) {
-        materialsDB = materialsDB.filter(m => m.id !== matId);
-        localStorage.setItem("app_materials", JSON.stringify(materialsDB));
-        renderMaterialsList();
-    }
-}
-
-function hideAllViews() {
-    document.getElementById("courseSelectionView").classList.add("hidden");
-    document.getElementById("adminPanelView").classList.add("hidden");
-}
-
 function showHome() {
-    hideAllViews();
-    document.getElementById("courseSelectionView").classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
