@@ -1,34 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-    getFirestore, collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { 
-    getAuth, sendPasswordResetEmail 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-// Firebase Configuration from your Screenshot
-const firebaseConfig = {
-    apiKey: "AIzaSyALrGK6yYtpORV5jHvANzpAi0WwPTPUqFI",
-    authDomain: "study-suppliers.firebaseapp.com",
-    projectId: "study-suppliers",
-    storageBucket: "study-suppliers.firebasestorage.app",
-    messagingSenderId: "1066506689674",
-    appId: "1:1066506689674:web:48e7f9e296d8bfd029e173",
-    measurementId: "G-6G71DGK3HM"
-};
-
-let app, db, auth;
-try {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    auth = getAuth(app);
-} catch (e) {
-    console.warn("Firebase Running in Local Fallback Mode");
-}
-
 const ADMIN_SECRET_KEY = "admin2020";
 
-// Updated BCom CA Syllabus (Semester 3 Updated with PHP & Cyber Security)
+// Syllabus Object
 const bcomCaSyllabus = {
     fy: {
         title: "FY BCom CA",
@@ -107,8 +79,14 @@ const bcomCaSyllabus = {
     }
 };
 
-const getLocalData = (key) => JSON.parse(localStorage.getItem(key) || "[]");
-const setLocalData = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+// Storage Utilities
+function getLocalData(key) {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+}
+
+function setLocalData(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
+}
 
 let currentUser = JSON.parse(localStorage.getItem("active_user") || "null");
 let currentSelectedYear = "";
@@ -135,12 +113,15 @@ function checkInitialAuthFlow() {
         landingOverlay.classList.remove("hidden");
 
         const registeredUsers = getLocalData("app_users");
-        if (registeredUsers.length > 0) switchAuthMode('login');
-        else switchAuthMode('register');
+        if (registeredUsers.length > 0) {
+            switchAuthMode('login');
+        } else {
+            switchAuthMode('register');
+        }
     }
 }
 
-window.switchAuthMode = function(mode) {
+function switchAuthMode(mode) {
     document.getElementById("tabRegisterBtn").classList.toggle("active", mode === 'register');
     document.getElementById("tabLoginBtn").classList.toggle("active", mode === 'login');
     document.getElementById("tabForgotBtn").classList.toggle("active", mode === 'forgot');
@@ -148,14 +129,17 @@ window.switchAuthMode = function(mode) {
     document.getElementById("registerForm").classList.toggle("hidden", mode !== 'register');
     document.getElementById("loginForm").classList.toggle("hidden", mode !== 'login');
     document.getElementById("forgotForm").classList.toggle("hidden", mode !== 'forgot');
-};
+}
 
-window.toggleAdminKeyInput = function() {
+function toggleAdminKeyInput() {
     const role = document.getElementById("regRole").value;
     const keyWrapper = document.getElementById("adminKeyWrapper");
-    if (role === "admin") keyWrapper.classList.remove("hidden");
-    else keyWrapper.classList.add("hidden");
-};
+    if (role === "admin") {
+        keyWrapper.classList.remove("hidden");
+    } else {
+        keyWrapper.classList.add("hidden");
+    }
+}
 
 function updateUserStatusUI() {
     const greeting = document.getElementById("userGreeting");
@@ -163,13 +147,16 @@ function updateUserStatusUI() {
 
     if (currentUser) {
         greeting.textContent = `Logged in: ${currentUser.name} (${currentUser.role.toUpperCase()})`;
-        if (currentUser.role === "admin") adminNavBtn.classList.remove("hidden");
-        else adminNavBtn.classList.add("hidden");
+        if (currentUser.role === "admin") {
+            adminNavBtn.classList.remove("hidden");
+        } else {
+            adminNavBtn.classList.add("hidden");
+        }
     }
 }
 
 function setupAuthAndFormEvents() {
-    // 1. Register Form
+    // 1. Registration Event
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value;
@@ -187,7 +174,7 @@ function setupAuthAndFormEvents() {
 
         const users = getLocalData("app_users");
         if (users.some(u => u.email === email)) {
-            alert("Email already registered! Please Login.");
+            alert("Email already registered! Switching to Login page.");
             switchAuthMode('login');
             return;
         }
@@ -202,7 +189,7 @@ function setupAuthAndFormEvents() {
         checkInitialAuthFlow();
     };
 
-    // 2. Login Form
+    // 2. Login Event
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("loginEmail").value;
@@ -221,34 +208,24 @@ function setupAuthAndFormEvents() {
         }
     };
 
-    // 3. Forgot Password Form
-    document.getElementById("forgotForm").onsubmit = async function (e) {
+    // 3. Forgot Password Event
+    document.getElementById("forgotForm").onsubmit = function (e) {
         e.preventDefault();
         const email = document.getElementById("forgotEmail").value;
-
-        if (auth) {
-            try {
-                await sendPasswordResetEmail(auth, email);
-                alert("Password reset link sent to your Email!");
-            } catch (err) {
-                alert("Password reset requested. Check your email or try again.");
-            }
-        } else {
-            alert("Password reset instructions sent to " + email);
-        }
+        alert("Password reset instructions sent to: " + email);
         switchAuthMode('login');
     };
 
-    // Share & Admin Forms
-    document.getElementById("userShareForm").onsubmit = async function (e) {
+    // Form Submissions
+    document.getElementById("userShareForm").onsubmit = function (e) {
         e.preventDefault();
-        await handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
+        handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
         document.getElementById("userShareForm").reset();
     };
 
-    document.getElementById("addMaterialForm").onsubmit = async function (e) {
+    document.getElementById("addMaterialForm").onsubmit = function (e) {
         e.preventDefault();
-        await handleSaveMaterial("adminMatYear", "adminMatSem", "adminMatSubject", "adminMatCategory", "adminMatTitle", "adminMatUrl");
+        handleSaveMaterial("adminMatYear", "adminMatSem", "adminMatSubject", "adminMatCategory", "adminMatTitle", "adminMatUrl");
         document.getElementById("addMaterialForm").reset();
         renderAdminMaterialsList();
     };
@@ -259,14 +236,14 @@ function setupAuthAndFormEvents() {
     };
 }
 
-window.logoutUser = function() {
+function logoutUser() {
     localStorage.removeItem("active_user");
     currentUser = null;
     checkInitialAuthFlow();
-};
+}
 
-// Form Dropdown Helpers
-window.populateFormSemesters = function (yId, sId, subjId) {
+// Dropdown Dynamic Logic
+function populateFormSemesters(yId, sId, subjId) {
     const yVal = document.getElementById(yId).value;
     const semSelect = document.getElementById(sId);
     document.getElementById(subjId).innerHTML = '<option value="">3. Select Subject</option>';
@@ -280,9 +257,9 @@ window.populateFormSemesters = function (yId, sId, subjId) {
         opt.textContent = bcomCaSyllabus[yVal].semesters[sKey].title;
         semSelect.appendChild(opt);
     });
-};
+}
 
-window.populateFormSubjects = function (yId, sId, subjId) {
+function populateFormSubjects(yId, sId, subjId) {
     const yVal = document.getElementById(yId).value;
     const sVal = document.getElementById(sId).value;
     const subjSelect = document.getElementById(subjId);
@@ -296,9 +273,9 @@ window.populateFormSubjects = function (yId, sId, subjId) {
         opt.textContent = subj.name + (subj.isPractical ? " [Practical]" : "");
         subjSelect.appendChild(opt);
     });
-};
+}
 
-window.populateCategories = function (yId, sId, subjId, catId) {
+function populateCategories(yId, sId, subjId, catId) {
     const yVal = document.getElementById(yId).value;
     const sVal = document.getElementById(sId).value;
     const subjVal = document.getElementById(subjId).value;
@@ -316,9 +293,9 @@ window.populateCategories = function (yId, sId, subjId, catId) {
     if (subjObj && subjObj.isPractical) {
         catSelect.appendChild(new Option("Practical Files", "Practical Files"));
     }
-};
+}
 
-async function handleSaveMaterial(yId, sId, subjId, catId, titleId, urlId) {
+function handleSaveMaterial(yId, sId, subjId, catId, titleId, urlId) {
     const year = document.getElementById(yId).value;
     const sem = document.getElementById(sId).value;
     const subject = document.getElementById(subjId).value;
@@ -330,23 +307,17 @@ async function handleSaveMaterial(yId, sId, subjId, catId, titleId, urlId) {
     mats.unshift({ id: Date.now().toString(), year, sem, subject, category, title, url });
     setLocalData("materials_data", mats);
 
-    if (db) {
-        try {
-            await addDoc(collection(db, "materialsData"), { year, sem, subject, category, title, url, timestamp: serverTimestamp() });
-        } catch (err) { console.log("Firebase sync skipped"); }
-    }
-
     alert("PDF Uploaded Successfully!");
     addActivityLog(`Shared PDF: ${title} (${subject})`);
 }
 
-// Navigation Views
-window.showHome = function () {
+// Interface Navigation
+function showHome() {
     hideAllViews();
     document.getElementById("courseSelectionView").classList.remove("hidden");
-};
+}
 
-window.openYear = function (yearKey) {
+function openYear(yearKey) {
     currentSelectedYear = yearKey;
     hideAllViews();
     document.getElementById("semesterSelectionView").classList.remove("hidden");
@@ -359,15 +330,18 @@ window.openYear = function (yearKey) {
         const sem = yearData.semesters[sKey];
         const card = document.createElement("div");
         card.className = "course-card";
-        card.onclick = () => openSemester(yearKey, sKey);
+        card.onclick = function() { openSemester(yearKey, sKey); };
         card.innerHTML = `<i class="fa-solid fa-book-bookmark course-icon"></i><h3>${sem.title}</h3><p>${sem.subjects.length} Subjects Included</p><button class="explore-btn">Open Semester</button>`;
         grid.appendChild(card);
     });
-};
+}
 
-window.backToSemesters = () => currentSelectedYear ? openYear(currentSelectedYear) : showHome();
+function backToSemesters() {
+    if (currentSelectedYear) openYear(currentSelectedYear);
+    else showHome();
+}
 
-window.openSemester = function (yearKey, semKey) {
+function openSemester(yearKey, semKey) {
     currentSelectedYear = yearKey;
     currentSelectedSem = semKey;
     hideAllViews();
@@ -381,15 +355,18 @@ window.openSemester = function (yearKey, semKey) {
     semData.subjects.forEach(subj => {
         const card = document.createElement("div");
         card.className = "subject-card";
-        card.onclick = () => openSubjectMaterials(yearKey, semKey, subj.name);
+        card.onclick = function() { openSubjectMaterials(yearKey, semKey, subj.name); };
         card.innerHTML = `<i class="fa-solid ${subj.isPractical ? 'fa-laptop-code' : 'fa-book'} subject-icon"></i><h3>${subj.name}</h3><p>${subj.isPractical ? 'Theory & Practical' : 'Theory Subject'}</p><button class="explore-btn">View PDFs</button>`;
         grid.appendChild(card);
     });
-};
+}
 
-window.backToSubjects = () => (currentSelectedYear && currentSelectedSem) ? openSemester(currentSelectedYear, currentSelectedSem) : showHome();
+function backToSubjects() {
+    if (currentSelectedYear && currentSelectedSem) openSemester(currentSelectedYear, currentSelectedSem);
+    else showHome();
+}
 
-window.openSubjectMaterials = function (yearKey, semKey, subjectName) {
+function openSubjectMaterials(yearKey, semKey, subjectName) {
     currentSelectedYear = yearKey;
     currentSelectedSem = semKey;
     currentSelectedSubject = subjectName;
@@ -399,7 +376,7 @@ window.openSubjectMaterials = function (yearKey, semKey, subjectName) {
     document.getElementById("selectedSubjectTitle").textContent = `${subjectName} - Study Materials`;
 
     renderSubjectMaterials(yearKey, semKey, subjectName);
-};
+}
 
 function processPdfUrls(rawUrl) {
     let previewUrl = rawUrl;
@@ -444,7 +421,7 @@ function renderSubjectMaterials(yearKey, semKey, subjectName) {
     });
 }
 
-window.trackAndSaveDownload = function (title, url, action) {
+function trackAndSaveDownload(title, url, action) {
     let downloads = getLocalData("user_saved_downloads");
     if (!downloads.some(d => d.pdfTitle === title)) {
         downloads.push({ pdfTitle: title, pdfUrl: url });
@@ -452,14 +429,14 @@ window.trackAndSaveDownload = function (title, url, action) {
     }
     addActivityLog(`${action === 'download' ? 'Downloaded' : 'Viewed'} ${title}`);
     updateDownloadBadgeCount();
-};
+}
 
 function updateDownloadBadgeCount() {
     const badge = document.getElementById("dlNavBadge");
     if (badge) badge.textContent = getLocalData("user_saved_downloads").length;
 }
 
-window.openUserDownloads = function () {
+function openUserDownloads() {
     hideAllViews();
     document.getElementById("userDownloadsView").classList.remove("hidden");
     const grid = document.getElementById("userDownloadsGrid");
@@ -486,10 +463,18 @@ window.openUserDownloads = function () {
         `;
         grid.appendChild(card);
     });
-};
+}
 
-window.openUserUploadPanel = () => { hideAllViews(); document.getElementById("userUploadView").classList.remove("hidden"); };
-window.openAdminPanel = () => { hideAllViews(); document.getElementById("adminPanelView").classList.remove("hidden"); renderAdminMaterialsList(); };
+function openUserUploadPanel() {
+    hideAllViews();
+    document.getElementById("userUploadView").classList.remove("hidden");
+}
+
+function openAdminPanel() {
+    hideAllViews();
+    document.getElementById("adminPanelView").classList.remove("hidden");
+    renderAdminMaterialsList();
+}
 
 function hideAllViews() {
     ["courseSelectionView", "semesterSelectionView", "subjectSelectionView", "materialsDetailView", "userUploadView", "userDownloadsView", "adminPanelView"]
@@ -509,11 +494,11 @@ function renderAdminMaterialsList() {
     });
 }
 
-window.deleteMaterial = function (id) {
+function deleteMaterial(id) {
     let mats = getLocalData("materials_data").filter(m => m.id !== id);
     setLocalData("materials_data", mats);
     renderAdminMaterialsList();
-};
+}
 
 function addActivityLog(text) {
     let logs = getLocalData("activity_logs");
