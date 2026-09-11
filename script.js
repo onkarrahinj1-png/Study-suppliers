@@ -1,39 +1,183 @@
-let usersDB = JSON.parse(localStorage.getItem("app_users")) || [];
-let currentUser = JSON.parse(localStorage.getItem("active_user")) || null;
+// EmailJS Credentials Declarations
+const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";   // Place your EmailJS Public Key here
+const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";   // Place your EmailJS Service ID here
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID"; // Place your EmailJS Template ID here
+
+const SECRET_ADMIN_KEY = "admin2020";
+
+// EmailJS Initialization
+(function() {
+    if (typeof emailjs !== "undefined") {
+        try {
+            if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }
+        } catch (err) {
+            console.error("EmailJS Init Error:", err);
+        }
+    }
+})();
+
+// BCom CA Syllabus Data Structure
+const bcomCaSyllabus = {
+    fy: {
+        title: "FY BCom CA",
+        semesters: {
+            sem1: {
+                title: "Semester 1",
+                subjects: [
+                    { name: "C Programming", isPractical: true },
+                    { name: "OAT (Office Automation Tools)", isPractical: true },
+                    { name: "Financial Accounting", isPractical: false },
+                    { name: "Business Communication", isPractical: false },
+                    { name: "Principles of Management", isPractical: false }
+                ]
+            },
+            sem2: {
+                title: "Semester 2",
+                subjects: [
+                    { name: "TPA", isPractical: true },
+                    { name: "DBMS", isPractical: true },
+                    { name: "Financial Accounting II", isPractical: false },
+                    { name: "Business Economics", isPractical: false },
+                    { name: "Principles of Marketing", isPractical: false }
+                ]
+            }
+        }
+    },
+    sy: {
+        title: "SY BCom CA",
+        semesters: {
+            sem3: {
+                title: "Semester 3",
+                subjects: [
+                    { name: "Data Structure (DS)", isPractical: true },
+                    { name: "PHP Programming", isPractical: true },
+                    { name: "Cyber Security", isPractical: false },
+                    { name: "Web Development", isPractical: true },
+                    { name: "Cost Accounting", isPractical: false }
+                ]
+            },
+            sem4: {
+                title: "Semester 4",
+                subjects: [
+                    { name: "SY Project", isPractical: true },
+                    { name: "Advanced Web Tech", isPractical: true },
+                    { name: "Corporate Accounting", isPractical: false },
+                    { name: "Computer Networks", isPractical: false },
+                    { name: "MIS", isPractical: false }
+                ]
+            }
+        }
+    },
+    ty: {
+        title: "TY BCom CA",
+        semesters: {
+            sem5: {
+                title: "Semester 5",
+                subjects: [
+                    { name: "Java Programming", isPractical: true },
+                    { name: "Python Programming", isPractical: true },
+                    { name: "SE (Software Engineering)", isPractical: true },
+                    { name: "Cyber Law", isPractical: false },
+                    { name: "E-Commerce", isPractical: false }
+                ]
+            },
+            sem6: {
+                title: "Semester 6",
+                subjects: [
+                    { name: "Cloud Computing", isPractical: true },
+                    { name: "Main Project", isPractical: true },
+                    { name: "Software Testing", isPractical: false },
+                    { name: "Digital Marketing", isPractical: false },
+                    { name: "Entrepreneurship", isPractical: false }
+                ]
+            }
+        }
+    }
+};
+
+// LocalStorage Helper
+function getLocalData(key) {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+}
+
+function setLocalData(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
+}
+
+let currentUser = JSON.parse(localStorage.getItem("active_user") || "null");
+let currentSelectedYear = "";
+let currentSelectedSem = "";
+let currentSelectedSubject = "";
 
 document.addEventListener("DOMContentLoaded", function () {
     checkInitialAuthFlow();
-    setupFormEvents();
+    setupAuthAndFormEvents();
+    renderHistoryList();
+    updateDownloadBadgeCount();
 });
 
 function checkInitialAuthFlow() {
-    const authOverlay = document.getElementById("authOverlay");
+    const landingOverlay = document.getElementById("landingAuthOverlay");
     const portalContent = document.getElementById("portalMainContent");
 
     if (currentUser) {
-        authOverlay.classList.add("hidden");
+        landingOverlay.classList.add("hidden");
         portalContent.classList.remove("hidden");
         updateUserStatusUI();
     } else {
         portalContent.classList.add("hidden");
-        authOverlay.classList.remove("hidden");
+        landingOverlay.classList.remove("hidden");
+
+        const registeredUsers = getLocalData("app_users");
+        if (registeredUsers.length > 0) {
+            switchAuthMode('login');
+        } else {
+            switchAuthMode('register');
+        }
     }
 }
 
+// Fixed Separate Auth Mode Logic
 function switchAuthMode(mode) {
     document.getElementById("mainAuthTabs").classList.remove("hidden");
-    document.getElementById("adminLoginForm").classList.add("hidden");
+    
+    const regBtn = document.getElementById("tabRegisterBtn");
+    const loginBtn = document.getElementById("tabLoginBtn");
+    const regForm = document.getElementById("registerForm");
+    const loginForm = document.getElementById("loginForm");
+    const forgotForm = document.getElementById("forgotForm");
+    const adminForm = document.getElementById("adminLoginForm");
+
+    // Hide sub forms
+    forgotForm.classList.add("hidden");
+    adminForm.classList.add("hidden");
 
     if (mode === 'register') {
-        document.getElementById("tabRegisterBtn").classList.add("active");
-        document.getElementById("tabLoginBtn").classList.remove("active");
-        document.getElementById("registerForm").classList.remove("hidden");
-        document.getElementById("loginForm").classList.add("hidden");
+        regBtn.classList.add("active");
+        loginBtn.classList.remove("active");
+        regForm.classList.remove("hidden");
+        loginForm.classList.add("hidden");
+    } else if (mode === 'login') {
+        loginBtn.classList.add("active");
+        regBtn.classList.remove("active");
+        loginForm.classList.remove("hidden");
+        regForm.classList.add("hidden");
+    }
+}
+
+function toggleForgotView(e) {
+    if (e) e.preventDefault();
+    const forgotForm = document.getElementById("forgotForm");
+    const loginForm = document.getElementById("loginForm");
+    
+    if (forgotForm.classList.contains("hidden")) {
+        loginForm.classList.add("hidden");
+        forgotForm.classList.remove("hidden");
     } else {
-        document.getElementById("tabLoginBtn").classList.add("active");
-        document.getElementById("tabRegisterBtn").classList.remove("active");
-        document.getElementById("loginForm").classList.remove("hidden");
-        document.getElementById("registerForm").classList.add("hidden");
+        forgotForm.classList.add("hidden");
+        loginForm.classList.remove("hidden");
     }
 }
 
@@ -41,6 +185,7 @@ function openAdminModal(e) {
     if (e) e.preventDefault();
     document.getElementById("registerForm").classList.add("hidden");
     document.getElementById("loginForm").classList.add("hidden");
+    document.getElementById("forgotForm").classList.add("hidden");
     document.getElementById("mainAuthTabs").classList.add("hidden");
     document.getElementById("adminLoginForm").classList.remove("hidden");
 }
@@ -55,8 +200,7 @@ function updateUserStatusUI() {
     const adminNavBtn = document.getElementById("adminNavBtn");
 
     if (currentUser) {
-        greeting.innerHTML = `Logged in as: <b>${currentUser.name}</b> (@${currentUser.username}) &nbsp;|&nbsp; Role: <span style="text-transform:uppercase; font-weight:700;">${currentUser.role}</span>`;
-        
+        greeting.textContent = `Logged in: ${currentUser.name || 'Admin'} - [${currentUser.role.toUpperCase()}]`;
         if (currentUser.role === "admin") {
             adminNavBtn.classList.remove("hidden");
         } else {
@@ -65,72 +209,115 @@ function updateUserStatusUI() {
     }
 }
 
-function setupFormEvents() {
-    // 1. Registration Logic
+function setupAuthAndFormEvents() {
+    // Register Form Handler
     document.getElementById("registerForm").onsubmit = function (e) {
         e.preventDefault();
         const name = document.getElementById("regName").value.trim();
-        const username = document.getElementById("regUsername").value.trim().toLowerCase();
-        const studentId = document.getElementById("regStudentId").value.trim();
-        const email = document.getElementById("regEmail").value.trim().toLowerCase();
+        const username = document.getElementById("regUsername").value.trim();
+        const userId = document.getElementById("regUserId").value.trim();
+        const email = document.getElementById("regEmail").value.trim();
         const password = document.getElementById("regPassword").value;
 
-        // Duplicate Username or Email check
-        const exists = usersDB.some(u => u.username === username || u.email === email);
-        if (exists) {
-            alert("Username or Email already registered!");
+        const users = getLocalData("app_users");
+        if (users.some(u => u.email === email)) {
+            alert("This email is already registered! Please login.");
+            switchAuthMode('login');
             return;
         }
 
-        const newUser = { id: Date.now(), name, username, studentId, email, password, role: "student" };
-        usersDB.push(newUser);
-        localStorage.setItem("app_users", JSON.stringify(usersDB));
+        const newUser = { name, username, userId, email, password, role: "student" };
+        users.push(newUser);
+        setLocalData("app_users", users);
 
-        alert("Registration Successful! Now login with your Username or Email.");
-        this.reset();
+        document.getElementById("registerForm").reset();
         switchAuthMode('login');
     };
 
-    // 2. Dual Login (Username OR Email)
+    // Login Form Handler (No popup, direct login)
     document.getElementById("loginForm").onsubmit = function (e) {
         e.preventDefault();
-        const input = document.getElementById("loginIdentifier").value.trim().toLowerCase();
-        const pwd = document.getElementById("loginPassword").value;
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
 
-        // Check against either Username or Email
-        const user = usersDB.find(u => (u.username === input || u.email === input) && u.password === pwd);
+        const users = getLocalData("app_users");
+        const found = users.find(u => u.email === email && u.password === password);
 
-        if (user) {
-            currentUser = user;
+        if (found) {
+            currentUser = found;
             localStorage.setItem("active_user", JSON.stringify(currentUser));
             checkInitialAuthFlow();
         } else {
-            alert("Invalid Username/Email or Password!");
+            alert("Invalid Email or Password!");
         }
     };
 
-    // 3. Secret Admin Login Validation (Key: admin2020)
+    // Secret Admin Login Handler
     document.getElementById("adminLoginForm").onsubmit = function (e) {
         e.preventDefault();
-        const email = document.getElementById("adminEmail").value.trim().toLowerCase();
-        const pwd = document.getElementById("adminPassword").value;
+        const email = document.getElementById("adminEmail").value.trim();
+        const password = document.getElementById("adminPassword").value;
         const key = document.getElementById("adminKeyInput").value.trim();
 
-        if (key !== "admin2020") {
+        if (key !== SECRET_ADMIN_KEY) {
             alert("Invalid Secret Key!");
             return;
         }
 
-        let user = usersDB.find(u => u.email === email && u.password === pwd);
+        currentUser = { name: "Admin", email: email, role: "admin" };
+        localStorage.setItem("active_user", JSON.stringify(currentUser));
+        checkInitialAuthFlow();
+    };
 
-        if (user) {
-            // Upgrade role to 'admin' because of correct key
-            currentUser = { ...user, role: "admin" };
-            localStorage.setItem("active_user", JSON.stringify(currentUser));
-            checkInitialAuthFlow();
-        } else {
-            alert("Account not found! Please register or check Email/Password.");
+    // Forgot Password Handler
+    document.getElementById("forgotForm").onsubmit = function (e) {
+        e.preventDefault();
+        const userEmail = document.getElementById("forgotEmail").value.trim();
+        const submitBtn = this.querySelector(".submit-btn");
+
+        if (!EMAILJS_PUBLIC_KEY || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY") {
+            alert("EmailJS is not configured yet! Please update credentials in script.js");
+            return;
         }
+
+        submitBtn.innerText = "Sending Email...";
+        submitBtn.disabled = true;
+
+        const templateParams = {
+            to_email: userEmail,
+            message: "Password reset request received for Study Suppliers account."
+        };
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+            .then(function() {
+                alert("Password reset link sent to: " + userEmail);
+                switchAuthMode('login');
+            }, function(error) {
+                alert("Failed to send email. Check EmailJS configuration.");
+            })
+            .finally(function() {
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Password Reset Link';
+                submitBtn.disabled = false;
+            });
+    };
+
+    // Share & Admin Forms
+    document.getElementById("userShareForm").onsubmit = function (e) {
+        e.preventDefault();
+        handleSaveMaterial("userMatYear", "userMatSem", "userMatSubject", "userMatCategory", "userMatTitle", "userMatUrl");
+        document.getElementById("userShareForm").reset();
+    };
+
+    document.getElementById("addMaterialForm").onsubmit = function (e) {
+        e.preventDefault();
+        handleSaveMaterial("adminMatYear", "adminMatSem", "adminMatSubject", "adminMatCategory", "adminMatTitle", "adminMatUrl");
+        document.getElementById("addMaterialForm").reset();
+        renderAdminMaterialsList();
+    };
+
+    document.getElementById("clearHistoryBtn").onclick = function() {
+        setLocalData("activity_logs", []);
+        renderHistoryList();
     };
 }
 
@@ -140,6 +327,275 @@ function logoutUser() {
     checkInitialAuthFlow();
 }
 
+function populateFormSemesters(yId, sId, subjId) {
+    const yVal = document.getElementById(yId).value;
+    const semSelect = document.getElementById(sId);
+    document.getElementById(subjId).innerHTML = '<option value="">3. Select Subject</option>';
+
+    semSelect.innerHTML = '<option value="">2. Select Semester</option>';
+    if (!yVal || !bcomCaSyllabus[yVal]) return;
+
+    Object.keys(bcomCaSyllabus[yVal].semesters).forEach(sKey => {
+        const opt = document.createElement("option");
+        opt.value = sKey;
+        opt.textContent = bcomCaSyllabus[yVal].semesters[sKey].title;
+        semSelect.appendChild(opt);
+    });
+}
+
+function populateFormSubjects(yId, sId, subjId) {
+    const yVal = document.getElementById(yId).value;
+    const sVal = document.getElementById(sId).value;
+    const subjSelect = document.getElementById(subjId);
+
+    subjSelect.innerHTML = '<option value="">3. Select Subject</option>';
+    if (!yVal || !sVal || !bcomCaSyllabus[yVal].semesters[sVal]) return;
+
+    bcomCaSyllabus[yVal].semesters[sVal].subjects.forEach(subj => {
+        const opt = document.createElement("option");
+        opt.value = subj.name;
+        opt.textContent = subj.name + (subj.isPractical ? " [Practical]" : "");
+        subjSelect.appendChild(opt);
+    });
+}
+
+function populateCategories(yId, sId, subjId, catId) {
+    const yVal = document.getElementById(yId).value;
+    const sVal = document.getElementById(sId).value;
+    const subjVal = document.getElementById(subjId).value;
+    const catSelect = document.getElementById(catId);
+
+    catSelect.innerHTML = '<option value="">4. Select Category</option>';
+    if (!yVal || !sVal || !subjVal) return;
+
+    const subjObj = bcomCaSyllabus[yVal].semesters[sVal].subjects.find(s => s.name === subjVal);
+
+    catSelect.appendChild(new Option("Textbooks / Notes", "Textbooks & Notes"));
+    catSelect.appendChild(new Option("Question Papers", "Question Papers"));
+    catSelect.appendChild(new Option("Reference PDFs", "Reference PDFs"));
+
+    if (subjObj && subjObj.isPractical) {
+        catSelect.appendChild(new Option("Practical Files", "Practical Files"));
+    }
+}
+
+function handleSaveMaterial(yId, sId, subjId, catId, titleId, urlId) {
+    const year = document.getElementById(yId).value;
+    const sem = document.getElementById(sId).value;
+    const subject = document.getElementById(subjId).value;
+    const category = document.getElementById(catId).value;
+    const title = document.getElementById(titleId).value.trim();
+    const url = document.getElementById(urlId).value.trim();
+
+    let mats = getLocalData("materials_data");
+    mats.unshift({ id: Date.now().toString(), year, sem, subject, category, title, url });
+    setLocalData("materials_data", mats);
+
+    alert("PDF Uploaded Successfully!");
+    addActivityLog(`Shared PDF: ${title} (${subject})`);
+}
+
 function showHome() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    hideAllViews();
+    document.getElementById("courseSelectionView").classList.remove("hidden");
+}
+
+function openYear(yearKey) {
+    currentSelectedYear = yearKey;
+    hideAllViews();
+    document.getElementById("semesterSelectionView").classList.remove("hidden");
+    const yearData = bcomCaSyllabus[yearKey];
+    document.getElementById("selectedYearTitle").textContent = `${yearData.title} - Select Semester`;
+
+    const grid = document.getElementById("semesterGrid");
+    grid.innerHTML = "";
+    Object.keys(yearData.semesters).forEach(sKey => {
+        const sem = yearData.semesters[sKey];
+        const card = document.createElement("div");
+        card.className = "course-card";
+        card.onclick = function() { openSemester(yearKey, sKey); };
+        card.innerHTML = `<i class="fa-solid fa-book-bookmark course-icon"></i><h3>${sem.title}</h3><p>${sem.subjects.length} Subjects Included</p><button class="explore-btn">Open Semester</button>`;
+        grid.appendChild(card);
+    });
+}
+
+function backToSemesters() {
+    if (currentSelectedYear) openYear(currentSelectedYear);
+    else showHome();
+}
+
+function openSemester(yearKey, semKey) {
+    currentSelectedYear = yearKey;
+    currentSelectedSem = semKey;
+    hideAllViews();
+    document.getElementById("subjectSelectionView").classList.remove("hidden");
+
+    const semData = bcomCaSyllabus[yearKey].semesters[semKey];
+    document.getElementById("selectedSemTitle").textContent = `${semData.title} - Select Subject`;
+
+    const grid = document.getElementById("subjectGrid");
+    grid.innerHTML = "";
+    semData.subjects.forEach(subj => {
+        const card = document.createElement("div");
+        card.className = "subject-card";
+        card.onclick = function() { openSubjectMaterials(yearKey, semKey, subj.name); };
+        card.innerHTML = `<i class="fa-solid ${subj.isPractical ? 'fa-laptop-code' : 'fa-book'} subject-icon"></i><h3>${subj.name}</h3><p>${subj.isPractical ? 'Theory & Practical' : 'Theory Subject'}</p><button class="explore-btn">View PDFs</button>`;
+        grid.appendChild(card);
+    });
+}
+
+function backToSubjects() {
+    if (currentSelectedYear && currentSelectedSem) openSemester(currentSelectedYear, currentSelectedSem);
+    else showHome();
+}
+
+function openSubjectMaterials(yearKey, semKey, subjectName) {
+    currentSelectedYear = yearKey;
+    currentSelectedSem = semKey;
+    currentSelectedSubject = subjectName;
+
+    hideAllViews();
+    document.getElementById("materialsDetailView").classList.remove("hidden");
+    document.getElementById("selectedSubjectTitle").textContent = `${subjectName} - Study Materials`;
+
+    renderSubjectMaterials(yearKey, semKey, subjectName);
+}
+
+function processPdfUrls(rawUrl) {
+    let previewUrl = rawUrl;
+    let downloadUrl = rawUrl;
+    if (rawUrl.includes("drive.google.com")) {
+        const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || rawUrl.match(/id=([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            previewUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
+            downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+        }
+    }
+    return { previewUrl, downloadUrl };
+}
+
+function renderSubjectMaterials(yearKey, semKey, subjectName) {
+    const grid = document.getElementById("materialsGrid");
+    grid.innerHTML = "";
+
+    const allMaterials = getLocalData("materials_data");
+    const filtered = allMaterials.filter(m => m.year === yearKey && m.sem === semKey && m.subject === subjectName);
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div style="text-align:center; padding:30px;"><b>No PDFs uploaded for ${subjectName} yet.</b></div>`;
+        return;
+    }
+
+    filtered.forEach(item => {
+        const { previewUrl, downloadUrl } = processPdfUrls(item.url);
+        const card = document.createElement("div");
+        card.className = "pdf-item-card";
+        card.innerHTML = `
+            <div class="pdf-item-header">
+                <div><i class="fa-solid fa-file-pdf" style="color:#e11d48;"></i> <b>${item.title}</b> (${item.category})</div>
+                <div class="pdf-action-btns">
+                    <a href="${previewUrl}" target="_blank" class="action-btn btn-open" onclick="trackAndSaveDownload('${item.title}', '${item.url}', 'view')">View</a>
+                    <a href="${downloadUrl}" target="_blank" class="action-btn btn-download" onclick="trackAndSaveDownload('${item.title}', '${item.url}', 'download')">Download</a>
+                </div>
+            </div>
+            <iframe src="${previewUrl}" width="100%" height="300" style="margin-top:10px; border-radius:6px; border:1px solid #cbd5e1;"></iframe>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function trackAndSaveDownload(title, url, action) {
+    let downloads = getLocalData("user_saved_downloads");
+    if (!downloads.some(d => d.pdfTitle === title)) {
+        downloads.push({ pdfTitle: title, pdfUrl: url });
+        setLocalData("user_saved_downloads", downloads);
+    }
+    addActivityLog(`${action === 'download' ? 'Downloaded' : 'Viewed'} ${title}`);
+    updateDownloadBadgeCount();
+}
+
+function updateDownloadBadgeCount() {
+    const badge = document.getElementById("dlNavBadge");
+    if (badge) badge.textContent = getLocalData("user_saved_downloads").length;
+}
+
+function openUserDownloads() {
+    hideAllViews();
+    document.getElementById("userDownloadsView").classList.remove("hidden");
+    const grid = document.getElementById("userDownloadsGrid");
+    grid.innerHTML = "";
+    const downloads = getLocalData("user_saved_downloads");
+
+    if (downloads.length === 0) {
+        grid.innerHTML = `<div style="text-align:center; padding:30px;">No saved PDFs yet.</div>`;
+        return;
+    }
+
+    downloads.forEach(item => {
+        const { previewUrl, downloadUrl } = processPdfUrls(item.pdfUrl);
+        const card = document.createElement("div");
+        card.className = "pdf-item-card";
+        card.innerHTML = `
+            <div class="pdf-item-header">
+                <div><b>${item.pdfTitle}</b></div>
+                <div class="pdf-action-btns">
+                    <a href="${previewUrl}" target="_blank" class="action-btn btn-open">View</a>
+                    <a href="${downloadUrl}" target="_blank" class="action-btn btn-download">Download</a>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function openUserUploadPanel() {
+    hideAllViews();
+    document.getElementById("userUploadView").classList.remove("hidden");
+}
+
+function openAdminPanel() {
+    hideAllViews();
+    document.getElementById("adminPanelView").classList.remove("hidden");
+    renderAdminMaterialsList();
+}
+
+function hideAllViews() {
+    ["courseSelectionView", "semesterSelectionView", "subjectSelectionView", "materialsDetailView", "userUploadView", "userDownloadsView", "adminPanelView"]
+    .forEach(id => document.getElementById(id)?.classList.add("hidden"));
+}
+
+function renderAdminMaterialsList() {
+    const list = document.getElementById("adminMaterialList");
+    const mats = getLocalData("materials_data");
+    list.innerHTML = mats.length === 0 ? "<li>No materials found.</li>" : "";
+
+    mats.forEach(m => {
+        const li = document.createElement("li");
+        li.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #e2e8f0;";
+        li.innerHTML = `<span><b>[${m.subject}]</b> ${m.title}</span><button onclick="deleteMaterial('${m.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete</button>`;
+        list.appendChild(li);
+    });
+}
+
+function deleteMaterial(id) {
+    let mats = getLocalData("materials_data").filter(m => m.id !== id);
+    setLocalData("materials_data", mats);
+    renderAdminMaterialsList();
+}
+
+function addActivityLog(text) {
+    let logs = getLocalData("activity_logs");
+    logs.unshift({ text, date: new Date().toLocaleTimeString() });
+    setLocalData("activity_logs", logs);
+    renderHistoryList();
+}
+
+function renderHistoryList() {
+    const historyList = document.getElementById("historyList");
+    const logs = getLocalData("activity_logs");
+    document.getElementById("downloadCount").textContent = logs.length;
+    historyList.innerHTML = logs.length === 0 ? `<li class="empty-msg">No activity yet.</li>` : "";
+    logs.forEach(l => {
+        historyList.innerHTML += `<li style="padding:4px 0; border-bottom:1px solid #f1f5f9;"><i class="fa-solid fa-angle-right"></i> ${l.text}</li>`;
+    });
 }
